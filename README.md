@@ -1,13 +1,28 @@
-# Tiktok_Tiktok
+# Pynarae_TiktokLandingPages
 
-This module enables seamless integration between your Magento 2 store and TikTok Business Center, providing
-comprehensive e-commerce features and advertising capabilities.
+Magento 2 module for managing multiple TikTok ad landing pages.
 
-## Key Features
+## Features
 
-Catalog Synchronization: Automatically sync your Magento product catalog with TikTok
-Advanced Tracking: Implement TikTok pixel and server-to-server event tracking
-Campaign Management: Built-in portal for TikTok ad campaign management
-Real-time Analytics: Monitor performance metrics and conversion data
-Automated Product Updates: Keep inventory and pricing in
-Trust Signal Collection: Automatically sync partner data to TikTok
+- Multiple landing pages managed in Magento admin
+- One public URL pattern: `/lp/{identifier}`
+- TikTok WebView: jump from `<head>` as early as possible
+- Non-TikTok browsers: render landing page, countdown, auto-jump, manual CTA
+- PC fallback to TikTok PDP web URL
+- Reads official TikTok Magento module website-level pixel/config state
+- Uses official website-level pixel code by default, with optional page override
+- Shows ad-ready frontend URL in admin list and edit pages
+
+## Install
+
+```bash
+cp -R app/code/Pynarae/TiktokLandingPages /path/to/magento/app/code/Pynarae/TiktokLandingPages
+bin/magento module:enable Pynarae_TiktokLandingPages
+bin/magento setup:upgrade
+bin/magento cache:flush
+```
+
+## Notes
+
+- Requires the official TikTok Magento module (`Tiktok_Tiktok`) to be installed and configured.
+- Landing pages are website-scoped, matching the official TikTok module's website-level configuration model.

@@ -1,5 +1,4 @@
 <?php
-
 use Magento\Framework\Component\ComponentRegistrar;
 
-ComponentRegistrar::register(ComponentRegistrar::MODULE, 'Tiktok_Tiktok', __DIR__);
+ComponentRegistrar::register(ComponentRegistrar::MODULE, 'Pynarae_TiktokLandingPages', __DIR__);

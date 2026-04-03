@@ -1,27 +1,17 @@
 <?xml version="1.0"?>
-<config>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <tiktok>
-            <api>
-                <url>https://business-api.tiktok.com/open_api/v1.3/event/track/</url>
-                <manage_url>https://ads.tiktok.com/business-extension/universal/manage</manage_url>
-                <auth_url>https://ads.tiktok.com/business-extension/auth</auth_url>
-                <business_platform>MAGENTO</business_platform>
-            </api>
-            <sync>
-                <sync_frequency>0 0 * * *</sync_frequency>
-            </sync>
-            <logging>
-                <log_level>info</log_level>
-            </logging>
-            <general>
-                <enable>0</enable>
-            </general>
-            <pixel_tracking>
-                <enable>1</enable>
-                <advanced_user_tracking>1</advanced_user_tracking>
-                <enable_tp_cookie>1</enable_tp_cookie>
-            </pixel_tracking>
-        </tiktok>
+        <pynarae_tiktoklandingpages>
+            <defaults>
+                <auto_jump_seconds>3</auto_jump_seconds>
+                <head_jump_timeout_ms>180</head_jump_timeout_ms>
+                <passthrough_params>utm_source,utm_medium,utm_campaign,utm_id,utm_term,utm_content,gclid,ttclid,campaign_id,adgroup_id,ad_id</passthrough_params>
+                <promo_bar_text>Limited-time offer available now</promo_bar_text>
+                <cta_text>Shop on TikTok</cta_text>
+                <desktop_message>Opening TikTok product page in your browser…</desktop_message>
+                <fail_message>Couldn't open TikTok app. Please tap again.</fail_message>
+            </defaults>
+        </pynarae_tiktoklandingpages>
     </default>
 </config>

@@ -2,8 +2,8 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <router id="standard">
-        <route id="tiktok" frontName="tiktok">
-            <module name="Tiktok_Tiktok"/>
+        <route id="pynarae_lp" frontName="pynarae_lp">
+            <module name="Pynarae_TiktokLandingPages"/>
         </route>
     </router>
 </config>

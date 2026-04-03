@@ -1,0 +1,55 @@
+<?php
+/** @var \Pynarae\TiktokLandingPages\Block\Adminhtml\Page\Index $block */
+$pages = $block->getPages();
+?>
+<div class="page-main-actions">
+    <div class="page-actions-placeholder"></div>
+    <div class="page-actions">
+        <a class="action-primary" href="<?= $block->escapeUrl($block->getAddUrl()) ?>">
+            <span><?= $block->escapeHtml(__('Add New Landing Page')) ?></span>
+        </a>
+    </div>
+</div>
+
+<div class="admin__data-grid-wrap admin__data-grid-wrap-static">
+    <table class="data-grid">
+        <thead>
+        <tr>
+            <th><?= $block->escapeHtml(__('ID')) ?></th>
+            <th><?= $block->escapeHtml(__('Title')) ?></th>
+            <th><?= $block->escapeHtml(__('Identifier')) ?></th>
+            <th><?= $block->escapeHtml(__('Website')) ?></th>
+            <th><?= $block->escapeHtml(__('Official Pixel')) ?></th>
+            <th><?= $block->escapeHtml(__('Frontend URL')) ?></th>
+            <th><?= $block->escapeHtml(__('Status')) ?></th>
+            <th><?= $block->escapeHtml(__('Updated')) ?></th>
+            <th><?= $block->escapeHtml(__('Actions')) ?></th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php if (!$pages): ?>
+            <tr><td colspan="9"><?= $block->escapeHtml(__('No landing pages found.')) ?></td></tr>
+        <?php else: ?>
+            <?php foreach ($pages as $page): ?>
+                <tr>
+                    <td><?= (int)$page->getId() ?></td>
+                    <td><?= $block->escapeHtml((string)$page->getData('title')) ?></td>
+                    <td><code><?= $block->escapeHtml((string)$page->getData('identifier')) ?></code></td>
+                    <td><?= $block->escapeHtml($block->getWebsiteName((int)$page->getData('website_id'))) ?></td>
+                    <td><?= $block->escapeHtml($block->getOfficialPixelSummary((int)$page->getData('website_id'))) ?></td>
+                    <td><div style="max-width:420px;word-break:break-all;"><a href="<?= $block->escapeUrl($block->getFrontendUrl($page)) ?>" target="_blank" rel="noopener noreferrer"><?= $block->escapeHtml($block->getFrontendUrl($page)) ?></a></div></td>
+                    <td><?= (int)$page->getData('is_active') ? $block->escapeHtml(__('Enabled')) : $block->escapeHtml(__('Disabled')) ?></td>
+                    <td><?= $block->escapeHtml((string)$page->getData('updated_at')) ?></td>
+                    <td>
+                        <a href="<?= $block->escapeUrl($block->getEditUrl((int)$page->getId())) ?>"><?= $block->escapeHtml(__('Edit')) ?></a>
+                        &nbsp;|&nbsp;
+                        <a href="<?= $block->escapeUrl($block->getDuplicateUrl((int)$page->getId())) ?>"><?= $block->escapeHtml(__('Duplicate')) ?></a>
+                        &nbsp;|&nbsp;
+                        <a href="<?= $block->escapeUrl($block->getDeleteUrl((int)$page->getId())) ?>" onclick="return confirm('<?= $block->escapeJsQuote(__('Delete this landing page?')) ?>');"><?= $block->escapeHtml(__('Delete')) ?></a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php endif; ?>
+        </tbody>
+    </table>
+</div>

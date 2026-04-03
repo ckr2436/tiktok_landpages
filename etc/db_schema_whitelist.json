@@ -1,0 +1,47 @@
+{
+  "pynarae_tiktok_landing_page": {
+    "column": {
+      "entity_id": true,
+      "website_id": true,
+      "title": true,
+      "identifier": true,
+      "is_active": true,
+      "template_code": true,
+      "raw_pdp_url": true,
+      "product_id": true,
+      "source": true,
+      "pc_fallback_url": true,
+      "mobile_fallback_url": true,
+      "pixel_code_override": true,
+      "content_name": true,
+      "promo_bar_text": true,
+      "headline": true,
+      "subheadline": true,
+      "cta_text": true,
+      "desktop_message": true,
+      "fail_message": true,
+      "hero_image_url": true,
+      "cta_bg_image_url": true,
+      "promo_image_url": true,
+      "head_jump_enabled": true,
+      "manual_button_enabled": true,
+      "body_auto_jump_enabled": true,
+      "head_jump_timeout_ms": true,
+      "auto_jump_seconds": true,
+      "passthrough_params": true,
+      "meta_title": true,
+      "meta_description": true,
+      "created_at": true,
+      "updated_at": true
+    },
+    "index": {
+      "PYNARAE_TKLP_IDENTIFIER_IDX": true,
+      "PYNARAE_TKLP_WEBSITE_ACTIVE_IDX": true
+    },
+    "constraint": {
+      "PRIMARY": true,
+      "PYNARAE_TKLP_WEBSITE_IDENTIFIER_UNIQUE": true,
+      "PYNARAE_TKLP_WEBSITE_ID_STORE_WEBSITE_WEBSITE_ID": true
+    }
+  }
+}
