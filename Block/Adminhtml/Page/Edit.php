@@ -40,6 +40,7 @@ class Edit extends Template
 
         $persisted = $this->dataPersistor->get('pynarae_tiktok_landing_page');
         if (is_array($persisted) && !empty($persisted)) {
+            $persisted = $this->restoreExistingManagedImages($persisted);
             $model->setData(array_merge($model->getData(), $persisted));
             $this->dataPersistor->clear('pynarae_tiktok_landing_page');
         }
@@ -60,13 +61,16 @@ class Edit extends Template
             'desktop_message' => $this->config->getDefaultDesktopMessage($storeId),
             'fail_message' => $this->config->getDefaultFailMessage($storeId),
         ];
+
         foreach ($defaults as $key => $value) {
             if ($model->getData($key) === null || $model->getData($key) === '') {
                 $model->setData($key, $value);
             }
         }
 
-        if (($rawPdpUrl = (string)$model->getData('raw_pdp_url')) !== '' && (($model->getData('pc_fallback_url') === null || $model->getData('pc_fallback_url') === '') || ($model->getData('mobile_fallback_url') === null || $model->getData('mobile_fallback_url') === ''))) {
+        if (($rawPdpUrl = (string)$model->getData('raw_pdp_url')) !== '' &&
+            (($model->getData('pc_fallback_url') === null || $model->getData('pc_fallback_url') === '') ||
+             ($model->getData('mobile_fallback_url') === null || $model->getData('mobile_fallback_url') === ''))) {
             try {
                 $parser = \Magento\Framework\App\ObjectManager::getInstance()->get(\Pynarae\TiktokLandingPages\Model\Deeplink\PdpUrlParser::class);
                 $parsed = $parser->parse($rawPdpUrl);
@@ -149,6 +153,7 @@ class Edit extends Template
         if ($identifier === '') {
             return null;
         }
+
         try {
             $website = $this->storeManager->getWebsite((int)$model->getData('website_id'));
             $store = $website->getDefaultStore();
@@ -202,5 +207,30 @@ class Edit extends Template
     {
         $websites = $this->getWebsites();
         return (int)($websites[0]['value'] ?? 1);
+    }
+
+    private function restoreExistingManagedImages(array $persisted): array
+    {
+        $map = [
+            'hero_image_url'   => 'hero_image_url_existing',
+            'cta_bg_image_url' => 'cta_bg_image_url_existing',
+            'promo_image_url'  => 'promo_image_url_existing',
+        ];
+
+        foreach ($map as $field => $existingField) {
+            $postedValue = trim((string)($persisted[$field] ?? ''));
+            $existingValue = trim((string)($persisted[$existingField] ?? ''));
+            $deleteFlag = !empty($persisted[$field . '_delete']);
+
+            if ($deleteFlag) {
+                continue;
+            }
+
+            if ($postedValue === '' && $existingValue !== '' && $this->assetUrlResolver->isManagedAsset($existingValue)) {
+                $persisted[$field] = $existingValue;
+            }
+        }
+
+        return $persisted;
     }
 }
