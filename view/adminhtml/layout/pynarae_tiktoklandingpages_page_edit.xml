@@ -3,7 +3,6 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
         <css src="Pynarae_TiktokLandingPages::css/page-edit.css"/>
-        <script src="Pynarae_TiktokLandingPages::js/page-edit.js"/>
     </head>
     <body>
         <referenceContainer name="content">
