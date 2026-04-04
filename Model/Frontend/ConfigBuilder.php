@@ -5,13 +5,15 @@ namespace Pynarae\TiktokLandingPages\Model\Frontend;
 
 use Magento\Store\Model\StoreManagerInterface;
 use Pynarae\TiktokLandingPages\Model\LandingPage;
+use Pynarae\TiktokLandingPages\Model\Media\AssetUrlResolver;
 use Pynarae\TiktokLandingPages\Model\Official\OfficialTikTokBridge;
 
 class ConfigBuilder
 {
     public function __construct(
         private readonly OfficialTikTokBridge $officialTikTokBridge,
-        private readonly StoreManagerInterface $storeManager
+        private readonly StoreManagerInterface $storeManager,
+        private readonly AssetUrlResolver $assetUrlResolver
     ) {
     }
 
@@ -21,6 +23,7 @@ class ConfigBuilder
         $official = $this->officialTikTokBridge->getWebsiteConfig($websiteId);
         $pixelCode = (string)($page->getData('pixel_code_override') ?: $official['pixel_code']);
         $currentStore = $this->storeManager->getStore();
+        $storeId = (int)$currentStore->getId();
 
         return [
             'page' => [
@@ -67,6 +70,9 @@ class ConfigBuilder
                 'hero_image_url' => (string)$page->getData('hero_image_url'),
                 'cta_bg_image_url' => (string)$page->getData('cta_bg_image_url'),
                 'promo_image_url' => (string)$page->getData('promo_image_url'),
+                'resolved_hero_image_url' => $this->assetUrlResolver->resolve((string)$page->getData('hero_image_url'), $storeId),
+                'resolved_cta_bg_image_url' => $this->assetUrlResolver->resolve((string)$page->getData('cta_bg_image_url'), $storeId),
+                'resolved_promo_image_url' => $this->assetUrlResolver->resolve((string)$page->getData('promo_image_url'), $storeId),
             ],
         ];
     }
