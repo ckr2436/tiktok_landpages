@@ -10,6 +10,9 @@ use Magento\Framework\Registry;
 use Magento\Store\Model\StoreManagerInterface;
 use Pynarae\TiktokLandingPages\Controller\Adminhtml\Page\Edit as EditController;
 use Pynarae\TiktokLandingPages\Model\Config;
+use Pynarae\TiktokLandingPages\Model\Deeplink\PdpUrlParser;
+use Pynarae\TiktokLandingPages\Model\LandingPage;
+use Pynarae\TiktokLandingPages\Model\LandingPageFactory;
 use Pynarae\TiktokLandingPages\Model\Media\AssetStorage;
 use Pynarae\TiktokLandingPages\Model\Media\AssetUrlResolver;
 use Pynarae\TiktokLandingPages\Model\Official\OfficialTikTokBridge;
@@ -26,16 +29,18 @@ class Edit extends Template
         private readonly DataPersistorInterface $dataPersistor,
         private readonly Config $config,
         private readonly AssetUrlResolver $assetUrlResolver,
+        private readonly LandingPageFactory $landingPageFactory,
+        private readonly PdpUrlParser $pdpUrlParser,
         array $data = []
     ) {
         parent::__construct($context, $data);
     }
 
-    public function getModel(): \Pynarae\TiktokLandingPages\Model\LandingPage
+    public function getModel(): LandingPage
     {
         $model = $this->registry->registry(EditController::REGISTRY_KEY);
-        if (!$model) {
-            $model = \Magento\Framework\App\ObjectManager::getInstance()->create(\Pynarae\TiktokLandingPages\Model\LandingPage::class);
+        if (!$model instanceof LandingPage) {
+            $model = $this->landingPageFactory->create();
         }
 
         $persisted = $this->dataPersistor->get('pynarae_tiktok_landing_page');
@@ -47,6 +52,7 @@ class Edit extends Template
 
         $websiteId = (int)($model->getData('website_id') ?: $this->getDefaultWebsiteId());
         $storeId = (int)$this->storeManager->getWebsite($websiteId)->getDefaultStore()->getId();
+
         $defaults = [
             'website_id' => $websiteId,
             'is_active' => 1,
@@ -68,16 +74,18 @@ class Edit extends Template
             }
         }
 
-        if (($rawPdpUrl = (string)$model->getData('raw_pdp_url')) !== '' &&
-            (($model->getData('pc_fallback_url') === null || $model->getData('pc_fallback_url') === '') ||
-             ($model->getData('mobile_fallback_url') === null || $model->getData('mobile_fallback_url') === ''))) {
+        $rawPdpUrl = (string)$model->getData('raw_pdp_url');
+        $missingPcFallback = $model->getData('pc_fallback_url') === null || $model->getData('pc_fallback_url') === '';
+        $missingMobileFallback = $model->getData('mobile_fallback_url') === null || $model->getData('mobile_fallback_url') === '';
+
+        if ($rawPdpUrl !== '' && ($missingPcFallback || $missingMobileFallback)) {
             try {
-                $parser = \Magento\Framework\App\ObjectManager::getInstance()->get(\Pynarae\TiktokLandingPages\Model\Deeplink\PdpUrlParser::class);
-                $parsed = $parser->parse($rawPdpUrl);
-                if ($model->getData('pc_fallback_url') === null || $model->getData('pc_fallback_url') === '') {
+                $parsed = $this->pdpUrlParser->parse($rawPdpUrl);
+
+                if ($missingPcFallback) {
                     $model->setData('pc_fallback_url', $parsed['pc_fallback_url']);
                 }
-                if ($model->getData('mobile_fallback_url') === null || $model->getData('mobile_fallback_url') === '') {
+                if ($missingMobileFallback) {
                     $model->setData('mobile_fallback_url', $parsed['mobile_fallback_url']);
                 }
             } catch (\Throwable) {
@@ -121,7 +129,10 @@ class Edit extends Template
             if ((int)$website->getId() === 0) {
                 continue;
             }
-            $items[] = ['value' => (int)$website->getId(), 'label' => $website->getName()];
+            $items[] = [
+                'value' => (int)$website->getId(),
+                'label' => $website->getName(),
+            ];
         }
         return $items;
     }
@@ -129,6 +140,7 @@ class Edit extends Template
     public function getOfficialInfo(): array
     {
         $websiteId = (int)($this->getModel()->getData('website_id') ?: $this->getDefaultWebsiteId());
+
         try {
             return $this->officialTikTokBridge->getWebsiteConfig($websiteId);
         } catch (\Throwable) {
@@ -141,7 +153,7 @@ class Edit extends Template
                 'pixel_code' => '',
                 'bc_id' => '',
                 'catalog_id' => '',
-                'manage_url' => ''
+                'manage_url' => '',
             ];
         }
     }
@@ -165,7 +177,10 @@ class Edit extends Template
 
     public function yesNoOptions(): array
     {
-        return [1 => (string)__('Yes'), 0 => (string)__('No')];
+        return [
+            1 => (string)__('Yes'),
+            0 => (string)__('No'),
+        ];
     }
 
     public function getImagePreviewUrl(?string $value): ?string
@@ -217,9 +232,9 @@ class Edit extends Template
     private function restoreExistingManagedImages(array $persisted): array
     {
         $map = [
-            'hero_image_url'   => 'hero_image_url_existing',
+            'hero_image_url' => 'hero_image_url_existing',
             'cta_bg_image_url' => 'cta_bg_image_url_existing',
-            'promo_image_url'  => 'promo_image_url_existing',
+            'promo_image_url' => 'promo_image_url_existing',
         ];
 
         foreach ($map as $field => $existingField) {
