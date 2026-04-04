@@ -4,8 +4,10 @@ declare(strict_types=1);
 namespace Pynarae\TiktokLandingPages\Controller\Adminhtml\Page;
 
 use Magento\Framework\App\Request\DataPersistorInterface;
+use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\StoreManagerInterface;
+use Psr\Log\LoggerInterface;
 use Pynarae\TiktokLandingPages\Api\LandingPageRepositoryInterface;
 use Pynarae\TiktokLandingPages\Model\Config;
 use Pynarae\TiktokLandingPages\Model\Deeplink\PdpUrlParser;
@@ -24,7 +26,8 @@ class Save extends AbstractPage
         private readonly DataPersistorInterface $dataPersistor,
         private readonly StoreManagerInterface $storeManager,
         private readonly Config $config,
-        private readonly AssetStorage $assetStorage
+        private readonly AssetStorage $assetStorage,
+        private readonly LoggerInterface $logger
     ) {
         parent::__construct($context);
     }
@@ -59,6 +62,8 @@ class Save extends AbstractPage
             $parsed = $this->pdpUrlParser->parse((string)($data['raw_pdp_url'] ?? ''));
             $storeId = (int)$this->storeManager->getWebsite($websiteId)->getDefaultStore()->getId();
 
+            $pendingManagedAssetCleanup = [];
+
             $heroImage = $this->resolveImageValue(
                 valueField: 'hero_image_url',
                 fileField: 'hero_image_file',
@@ -66,7 +71,8 @@ class Save extends AbstractPage
                 existingField: 'hero_image_url_existing',
                 subDirectory: 'hero',
                 modelValue: (string)$model->getData('hero_image_url'),
-                data: $data
+                data: $data,
+                pendingCleanup: $pendingManagedAssetCleanup
             );
 
             $ctaBgImage = $this->resolveImageValue(
@@ -76,7 +82,8 @@ class Save extends AbstractPage
                 existingField: 'cta_bg_image_url_existing',
                 subDirectory: 'cta',
                 modelValue: (string)$model->getData('cta_bg_image_url'),
-                data: $data
+                data: $data,
+                pendingCleanup: $pendingManagedAssetCleanup
             );
 
             $promoImage = $this->resolveImageValue(
@@ -86,7 +93,8 @@ class Save extends AbstractPage
                 existingField: 'promo_image_url_existing',
                 subDirectory: 'promo',
                 modelValue: (string)$model->getData('promo_image_url'),
-                data: $data
+                data: $data,
+                pendingCleanup: $pendingManagedAssetCleanup
             );
 
             $model->setData('website_id', $websiteId);
@@ -120,6 +128,7 @@ class Save extends AbstractPage
             $model->setData('meta_description', $this->nullIfEmpty((string)($data['meta_description'] ?? '')));
 
             $this->landingPageRepository->save($model);
+            $this->cleanupManagedAssets($pendingManagedAssetCleanup, $model);
             $this->messageManager->addSuccessMessage(__('Landing page saved.'));
             $this->dataPersistor->clear('pynarae_tiktok_landing_page');
 
@@ -142,7 +151,8 @@ class Save extends AbstractPage
         string $existingField,
         string $subDirectory,
         ?string $modelValue,
-        array $data
+        array $data,
+        array &$pendingCleanup
     ): ?string {
         $modelValue = $this->nullIfEmpty((string)$modelValue);
         $postedExistingValue = $this->nullIfEmpty((string)($data[$existingField] ?? ''));
@@ -150,20 +160,24 @@ class Save extends AbstractPage
 
         if (!empty($data[$deleteField])) {
             if ($currentValue !== null) {
-                $this->assetStorage->deleteIfManaged($currentValue);
+                $pendingCleanup[] = $currentValue;
             }
             return null;
         }
 
         if ($this->assetStorage->hasUpload($fileField)) {
-            return $this->assetStorage->saveUploadedImage($fileField, $subDirectory, $currentValue);
+            $uploaded = $this->assetStorage->saveUploadedImage($fileField, $subDirectory);
+            if ($currentValue !== null && $currentValue !== $uploaded) {
+                $pendingCleanup[] = $currentValue;
+            }
+            return $uploaded;
         }
 
         $externalValue = $this->nullIfEmpty((string)($data[$valueField] ?? ''));
         if ($externalValue !== null) {
             $this->assertValidExternalImageUrl($externalValue);
             if ($currentValue !== null && $currentValue !== $externalValue) {
-                $this->assetStorage->deleteIfManaged($currentValue);
+                $pendingCleanup[] = $currentValue;
             }
             return $externalValue;
         }
@@ -219,6 +233,38 @@ class Save extends AbstractPage
 
         if ($collection->getSize() > 0) {
             throw new LocalizedException(__('A landing page with this identifier already exists for the selected website.'));
+        }
+    }
+
+    private function cleanupManagedAssets(array $pendingCleanup, DataObject $model): void
+    {
+        $pendingCleanup = array_values(array_unique(array_filter(array_map(
+            fn ($value) => $this->nullIfEmpty((string)$value),
+            $pendingCleanup
+        ))));
+
+        if ($pendingCleanup === []) {
+            return;
+        }
+
+        $cleanupErrors = [];
+        foreach ($pendingCleanup as $value) {
+            try {
+                $this->assetStorage->deleteIfManaged($value);
+            } catch (\Throwable $cleanupException) {
+                $cleanupErrors[] = sprintf('%s: %s', $value, $cleanupException->getMessage());
+            }
+        }
+
+        if ($cleanupErrors !== []) {
+            $this->logger->warning(
+                'Landing page saved but one or more replaced managed assets could not be removed.',
+                [
+                    'landing_page_id' => (int)$model->getData('entity_id'),
+                    'landing_page_title' => (string)$model->getData('title'),
+                    'cleanup_errors' => $cleanupErrors,
+                ]
+            );
         }
     }
 }

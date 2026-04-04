@@ -42,7 +42,7 @@ class AssetStorage
         return $error !== UPLOAD_ERR_NO_FILE && $name !== '';
     }
 
-    public function saveUploadedImage(string $fieldName, string $subDirectory, ?string $oldValue = null): string
+    public function saveUploadedImage(string $fieldName, string $subDirectory): string
     {
         if (!$this->hasUpload($fieldName)) {
             throw new LocalizedException(__('No uploaded file was found for field "%1".', $fieldName));
@@ -99,10 +99,6 @@ class AssetStorage
 
         $savedFile = ltrim((string)$result['file'], '/');
         $relativePath = $targetDir . '/' . $savedFile;
-
-        if ($oldValue && $oldValue !== $relativePath) {
-            $this->deleteIfManaged($oldValue);
-        }
 
         return $relativePath;
     }
