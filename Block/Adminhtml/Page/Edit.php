@@ -102,13 +102,13 @@ class Edit extends Template
         return $this->getUrl('*/*/index');
     }
 
-    public function getDuplicateUrl(): ?string
+    public function getDuplicatePostUrl(): ?string
     {
         $m = $this->getModel();
         return $m->getId() ? $this->getUrl('*/*/duplicate', ['id' => $m->getId()]) : null;
     }
 
-    public function getDeleteUrl(): ?string
+    public function getDeletePostUrl(): ?string
     {
         $m = $this->getModel();
         return $m->getId() ? $this->getUrl('*/*/delete', ['id' => $m->getId()]) : null;
@@ -201,6 +201,11 @@ class Edit extends Template
     public function getManagedMediaBasePath(): string
     {
         return AssetStorage::BASE_MEDIA_PATH;
+    }
+
+    public function resolveFrontendImageUrl(?string $value): ?string
+    {
+        return $this->assetUrlResolver->resolve($value);
     }
 
     private function getDefaultWebsiteId(): int
