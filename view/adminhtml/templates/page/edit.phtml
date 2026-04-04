@@ -4,55 +4,437 @@ $model = $block->getModel();
 $official = $block->getOfficialInfo();
 $frontendPreview = $block->getFrontendUrlPreview();
 $yesNo = $block->yesNoOptions();
+
+$renderImageField = function (
+    string $label,
+    string $valueField,
+    string $fileField,
+    ?string $currentValue,
+    string $hint = ''
+) use ($block) {
+    $previewUrl = $block->getImagePreviewUrl($currentValue);
+    $externalValue = $block->getExternalImageFieldValue($currentValue);
+    $isManaged = $block->isManagedImage($currentValue);
+    ?>
+    <div class="py-tklp-media-field" data-media-field>
+        <input type="hidden" name="<?= $block->escapeHtmlAttr($valueField) ?>_existing" value="<?= $block->escapeHtmlAttr((string)$currentValue) ?>" />
+
+        <div class="py-tklp-media-grid">
+            <div class="py-tklp-media-main">
+                <label class="admin__field-label py-tklp-label"><?= $block->escapeHtml(__('External URL')) ?></label>
+                <input
+                    class="admin__control-text"
+                    type="url"
+                    name="<?= $block->escapeHtmlAttr($valueField) ?>"
+                    value="<?= $block->escapeHtmlAttr($externalValue) ?>"
+                    placeholder="https://example.com/your-image.jpg"
+                />
+                <p class="note">
+                    <span><?= $block->escapeHtml(__('Keep this empty if you want to use a locally uploaded image.')) ?></span>
+                </p>
+
+                <label class="admin__field-label py-tklp-label" style="margin-top:16px;"><?= $block->escapeHtml(__('Upload from computer')) ?></label>
+                <div class="py-tklp-dropzone" data-dropzone>
+                    <input
+                        type="file"
+                        name="<?= $block->escapeHtmlAttr($fileField) ?>"
+                        accept=".jpg,.jpeg,.png,.webp,.gif"
+                        class="py-tklp-file-input"
+                        data-file-input
+                    />
+                    <div class="py-tklp-dropzone-title"><?= $block->escapeHtml(__('Drag & drop an image here')) ?></div>
+                    <div class="py-tklp-dropzone-sub"><?= $block->escapeHtml(__('or click to choose a file from your computer')) ?></div>
+                    <div class="py-tklp-file-meta" data-file-meta><?= $block->escapeHtml(__('No file selected')) ?></div>
+                </div>
+                <p class="note">
+                    <span>
+                        <?= $block->escapeHtml(__('Allowed: %1. Max size: %2 MB. Uploaded files are stored in pub/media/%3 and are only uploaded through this admin page when you save.', $block->getAllowedImageExtensionsLabel(), (string)$block->getMaxUploadSizeMb(), $block->getManagedMediaBasePath())) ?>
+                    </span>
+                </p>
+
+                <div style="margin-top:12px;">
+                    <label class="admin__field-label" style="display:flex;align-items:center;gap:8px;">
+                        <input type="checkbox" name="<?= $block->escapeHtmlAttr($valueField) ?>_delete" value="1" />
+                        <span><?= $block->escapeHtml(__('Remove current image')) ?></span>
+                    </label>
+                </div>
+
+                <?php if ($hint !== ''): ?>
+                    <p class="note"><span><?= $block->escapeHtml($hint) ?></span></p>
+                <?php endif; ?>
+            </div>
+
+            <div class="py-tklp-media-preview">
+                <div class="py-tklp-preview-box">
+                    <?php if ($previewUrl): ?>
+                        <img src="<?= $block->escapeUrl($previewUrl) ?>" alt="<?= $block->escapeHtmlAttr($label) ?>" />
+                    <?php else: ?>
+                        <div class="py-tklp-preview-empty"><?= $block->escapeHtml(__('No image')) ?></div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="py-tklp-preview-meta">
+                    <div><strong><?= $block->escapeHtml(__('Current source')) ?>:</strong> <?= $block->escapeHtml($isManaged ? __('Local asset') : ($currentValue ? __('External URL') : __('Empty'))) ?></div>
+                    <?php if ($currentValue): ?>
+                        <div style="margin-top:6px;word-break:break-all;">
+                            <strong><?= $block->escapeHtml(__('Stored value')) ?>:</strong>
+                            <?= $block->escapeHtml((string)$currentValue) ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php
+};
 ?>
+<style>
+.py-tklp-media-field{padding:4px 0}
+.py-tklp-media-grid{display:grid;grid-template-columns:minmax(520px,1fr) 280px;gap:18px;align-items:start}
+.py-tklp-label{display:block;margin-bottom:6px;font-weight:600}
+.py-tklp-dropzone{position:relative;border:2px dashed #cbd5e1;border-radius:10px;background:#f8fafc;padding:22px 16px;text-align:center;cursor:pointer;transition:.2s ease}
+.py-tklp-dropzone:hover{border-color:#64748b;background:#f1f5f9}
+.py-tklp-dropzone.is-dragover{border-color:#2563eb;background:#eff6ff}
+.py-tklp-file-input{display:none}
+.py-tklp-dropzone-title{font-size:14px;font-weight:700;color:#0f172a}
+.py-tklp-dropzone-sub{font-size:12px;color:#64748b;margin-top:6px}
+.py-tklp-file-meta{font-size:12px;color:#334155;margin-top:10px;word-break:break-all}
+.py-tklp-media-preview{border:1px solid #e2e8f0;border-radius:10px;background:#fff;padding:12px}
+.py-tklp-preview-box{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
+.py-tklp-preview-box img{max-width:100%;max-height:100%;display:block}
+.py-tklp-preview-empty{font-size:12px;color:#64748b}
+.py-tklp-preview-meta{margin-top:10px;font-size:12px;color:#334155;line-height:1.6}
+@media (max-width:1200px){
+    .py-tklp-media-grid{grid-template-columns:1fr}
+}
+</style>
+
 <div class="page-main-actions">
     <div class="page-actions-placeholder"></div>
     <div class="page-actions">
         <a class="action-secondary" href="<?= $block->escapeUrl($block->getBackUrl()) ?>"><span><?= $block->escapeHtml(__('Back')) ?></span></a>
-        <?php if ($block->getDuplicateUrl()): ?><a class="action-secondary" href="<?= $block->escapeUrl((string)$block->getDuplicateUrl()) ?>"><span><?= $block->escapeHtml(__('Duplicate')) ?></span></a><?php endif; ?>
-        <?php if ($block->getDeleteUrl()): ?><a class="action-secondary" href="<?= $block->escapeUrl((string)$block->getDeleteUrl()) ?>" onclick="return confirm('<?= $block->escapeJsQuote(__('Delete this landing page?')) ?>');"><span><?= $block->escapeHtml(__('Delete')) ?></span></a><?php endif; ?>
+        <?php if ($block->getDuplicateUrl()): ?>
+            <a class="action-secondary" href="<?= $block->escapeUrl((string)$block->getDuplicateUrl()) ?>"><span><?= $block->escapeHtml(__('Duplicate')) ?></span></a>
+        <?php endif; ?>
+        <?php if ($block->getDeleteUrl()): ?>
+            <a class="action-secondary" href="<?= $block->escapeUrl((string)$block->getDeleteUrl()) ?>" onclick="return confirm('<?= $block->escapeJsQuote(__('Delete this landing page?')) ?>');"><span><?= $block->escapeHtml(__('Delete')) ?></span></a>
+        <?php endif; ?>
     </div>
 </div>
 
-<form method="post" action="<?= $block->escapeUrl($block->getSaveUrl()) ?>">
+<form method="post" action="<?= $block->escapeUrl($block->getSaveUrl()) ?>" enctype="multipart/form-data">
     <?= $block->getBlockHtml('formkey') ?>
     <input type="hidden" name="entity_id" value="<?= (int)$model->getId() ?>" />
-    <div class="admin__page-section">
-        <div class="admin__page-section-title"><span class="title"><?= $block->escapeHtml($block->getHeaderText()) ?></span></div>
-        <div class="admin__page-section-content">
-            <?php if ($frontendPreview): ?><div class="message message-notice"><div><?= $block->escapeHtml(__('Ad URL')) ?>: <a target="_blank" rel="noopener noreferrer" href="<?= $block->escapeUrl($frontendPreview) ?>"><?= $block->escapeHtml($frontendPreview) ?></a></div></div><?php endif; ?>
-            <div class="message message-notice"><div><strong><?= $block->escapeHtml(__('Official TikTok Module')) ?>:</strong> <?= $official['connected'] ? $block->escapeHtml(__('Connected')) : $block->escapeHtml(__('Not Connected')) ?><br/><strong><?= $block->escapeHtml(__('Official Pixel Code')) ?>:</strong> <?= $block->escapeHtml((string)($official['pixel_code'] ?: __('Not available'))) ?><br/><strong><?= $block->escapeHtml(__('Pixel Tracking Enabled')) ?>:</strong> <?= $block->escapeHtml($official['pixel_tracking_enabled'] ? __('Yes') : __('No')) ?></div></div>
-            <div class="message message-notice"><div><?= $block->escapeHtml(__('Fields marked * are required. PC and Mobile fallback URLs are auto-generated from the TikTok PDP URL when you save.')) ?></div></div>
 
-            <table class="admin__control-table" style="width:100%;max-width:1200px;"><tbody>
-                <tr><th style="width:260px;"><label for="title"><?= $block->escapeHtml(__('Title *')) ?></label></th><td><input class="admin__control-text" type="text" name="title" id="title" value="<?= $block->escapeHtmlAttr((string)$model->getData('title')) ?>" required /></td></tr>
-                <tr><th><label for="identifier"><?= $block->escapeHtml(__('Identifier *')) ?></label></th><td><input class="admin__control-text" type="text" name="identifier" id="identifier" value="<?= $block->escapeHtmlAttr((string)$model->getData('identifier')) ?>" required /><p class="note"><span><?= $block->escapeHtml(__('The public ad URL will be /lp/{identifier}.')) ?></span></p></td></tr>
-                <tr><th><label for="website_id"><?= $block->escapeHtml(__('Website *')) ?></label></th><td><select class="admin__control-select" name="website_id" id="website_id"><?php foreach ($block->getWebsites() as $website): ?><option value="<?= (int)$website['value'] ?>" <?= (int)$model->getData('website_id') === (int)$website['value'] ? 'selected' : '' ?>><?= $block->escapeHtml($website['label']) ?></option><?php endforeach; ?></select><p class="note"><span><?= $block->escapeHtml(__('Landing pages are website-scoped so they align with the official TikTok website-level config.')) ?></span></p></td></tr>
-                <tr><th><label for="is_active"><?= $block->escapeHtml(__('Enabled')) ?></label></th><td><select class="admin__control-select" name="is_active" id="is_active"><?php foreach ($yesNo as $value => $label): ?><option value="<?= (int)$value ?>" <?= (int)$model->getData('is_active') === (int)$value ? 'selected' : '' ?>><?= $block->escapeHtml($label) ?></option><?php endforeach; ?></select></td></tr>
-                <tr><th><label for="raw_pdp_url"><?= $block->escapeHtml(__('TikTok PDP URL *')) ?></label></th><td><textarea class="admin__control-textarea" name="raw_pdp_url" id="raw_pdp_url" rows="4" required><?= $block->escapeHtml((string)$model->getData('raw_pdp_url')) ?></textarea><p class="note"><span><?= $block->escapeHtml(__('Paste the full TikTok PDP URL including chain_key and source. The module will parse product_id and generate PC/mobile fallbacks automatically.')) ?></span></p></td></tr>
-                <tr><th><label for="pc_fallback_url"><?= $block->escapeHtml(__('PC Fallback URL')) ?></label></th><td><input class="admin__control-text" type="text" name="pc_fallback_url" id="pc_fallback_url" value="<?= $block->escapeHtmlAttr((string)$model->getData('pc_fallback_url')) ?>" readonly="readonly" /> <p class="note"><span><?= $block->escapeHtml(__('Auto-generated from the TikTok PDP URL after save.')) ?></span></p></td></tr>
-                <tr><th><label for="mobile_fallback_url"><?= $block->escapeHtml(__('Mobile Web Fallback URL')) ?></label></th><td><input class="admin__control-text" type="text" name="mobile_fallback_url" id="mobile_fallback_url" value="<?= $block->escapeHtmlAttr((string)$model->getData('mobile_fallback_url')) ?>" readonly="readonly" /> <p class="note"><span><?= $block->escapeHtml(__('Auto-generated from the TikTok PDP URL after save.')) ?></span></p></td></tr>
-                <tr><th><label for="pixel_code_override"><?= $block->escapeHtml(__('Pixel Code Override')) ?></label></th><td><input class="admin__control-text" type="text" name="pixel_code_override" id="pixel_code_override" value="<?= $block->escapeHtmlAttr((string)$model->getData('pixel_code_override')) ?>" /><p class="note"><span><?= $block->escapeHtml(__('Leave blank to use the official website-level pixel code from Tiktok_Tiktok.')) ?></span></p></td></tr>
-                <tr><th><label for="content_name"><?= $block->escapeHtml(__('Pixel Content Name')) ?></label></th><td><input class="admin__control-text" type="text" name="content_name" id="content_name" value="<?= $block->escapeHtmlAttr((string)$model->getData('content_name')) ?>" /></td></tr>
-                <tr><th><label for="promo_bar_text"><?= $block->escapeHtml(__('Promo Bar Text')) ?></label></th><td><textarea class="admin__control-textarea" name="promo_bar_text" id="promo_bar_text" rows="2"><?= $block->escapeHtml((string)$model->getData('promo_bar_text')) ?></textarea></td></tr>
-                <tr><th><label for="headline"><?= $block->escapeHtml(__('Headline')) ?></label></th><td><textarea class="admin__control-textarea" name="headline" id="headline" rows="2"><?= $block->escapeHtml((string)$model->getData('headline')) ?></textarea></td></tr>
-                <tr><th><label for="subheadline"><?= $block->escapeHtml(__('Subheadline')) ?></label></th><td><textarea class="admin__control-textarea" name="subheadline" id="subheadline" rows="3"><?= $block->escapeHtml((string)$model->getData('subheadline')) ?></textarea></td></tr>
-                <tr><th><label for="cta_text"><?= $block->escapeHtml(__('CTA Button Text')) ?></label></th><td><input class="admin__control-text" type="text" name="cta_text" id="cta_text" value="<?= $block->escapeHtmlAttr((string)$model->getData('cta_text')) ?>" /></td></tr>
-                <tr><th><label for="desktop_message"><?= $block->escapeHtml(__('Desktop Message')) ?></label></th><td><textarea class="admin__control-textarea" name="desktop_message" id="desktop_message" rows="2"><?= $block->escapeHtml((string)$model->getData('desktop_message')) ?></textarea></td></tr>
-                <tr><th><label for="fail_message"><?= $block->escapeHtml(__('Failure Message')) ?></label></th><td><textarea class="admin__control-textarea" name="fail_message" id="fail_message" rows="2"><?= $block->escapeHtml((string)$model->getData('fail_message')) ?></textarea></td></tr>
-                <tr><th><label for="hero_image_url"><?= $block->escapeHtml(__('Hero Image URL')) ?></label></th><td><input class="admin__control-text" type="text" name="hero_image_url" id="hero_image_url" value="<?= $block->escapeHtmlAttr((string)$model->getData('hero_image_url')) ?>" /></td></tr>
-                <tr><th><label for="cta_bg_image_url"><?= $block->escapeHtml(__('CTA Background Image URL')) ?></label></th><td><input class="admin__control-text" type="text" name="cta_bg_image_url" id="cta_bg_image_url" value="<?= $block->escapeHtmlAttr((string)$model->getData('cta_bg_image_url')) ?>" /></td></tr>
-                <tr><th><label for="promo_image_url"><?= $block->escapeHtml(__('Promo Image URL')) ?></label></th><td><input class="admin__control-text" type="text" name="promo_image_url" id="promo_image_url" value="<?= $block->escapeHtmlAttr((string)$model->getData('promo_image_url')) ?>" /></td></tr>
-                <tr><th><label for="head_jump_enabled"><?= $block->escapeHtml(__('Head Jump for TikTok WebView')) ?></label></th><td><select class="admin__control-select" name="head_jump_enabled" id="head_jump_enabled"><?php foreach ($yesNo as $value => $label): ?><option value="<?= (int)$value ?>" <?= (int)$model->getData('head_jump_enabled') === (int)$value ? 'selected' : '' ?>><?= $block->escapeHtml($label) ?></option><?php endforeach; ?></select></td></tr>
-                <tr><th><label for="head_jump_timeout_ms"><?= $block->escapeHtml(__('Head Jump Timeout (ms)')) ?></label></th><td><input class="admin__control-text" type="number" min="0" name="head_jump_timeout_ms" id="head_jump_timeout_ms" value="<?= (int)$model->getData('head_jump_timeout_ms') ?>" /></td></tr>
-                <tr><th><label for="body_auto_jump_enabled"><?= $block->escapeHtml(__('Auto Jump for Non-TikTok Browsers')) ?></label></th><td><select class="admin__control-select" name="body_auto_jump_enabled" id="body_auto_jump_enabled"><?php foreach ($yesNo as $value => $label): ?><option value="<?= (int)$value ?>" <?= (int)$model->getData('body_auto_jump_enabled') === (int)$value ? 'selected' : '' ?>><?= $block->escapeHtml($label) ?></option><?php endforeach; ?></select></td></tr>
-                <tr><th><label for="auto_jump_seconds"><?= $block->escapeHtml(__('Auto Jump Delay (seconds)')) ?></label></th><td><input class="admin__control-text" type="number" min="0" name="auto_jump_seconds" id="auto_jump_seconds" value="<?= (int)$model->getData('auto_jump_seconds') ?>" /></td></tr>
-                <tr><th><label for="manual_button_enabled"><?= $block->escapeHtml(__('Show Manual Jump Button')) ?></label></th><td><select class="admin__control-select" name="manual_button_enabled" id="manual_button_enabled"><?php foreach ($yesNo as $value => $label): ?><option value="<?= (int)$value ?>" <?= (int)$model->getData('manual_button_enabled') === (int)$value ? 'selected' : '' ?>><?= $block->escapeHtml($label) ?></option><?php endforeach; ?></select></td></tr>
-                <tr><th><label for="passthrough_params"><?= $block->escapeHtml(__('Passthrough Query Params')) ?></label></th><td><input class="admin__control-text" type="text" name="passthrough_params" id="passthrough_params" value="<?= $block->escapeHtmlAttr((string)$model->getData('passthrough_params')) ?>" /><p class="note"><span><?= $block->escapeHtml(__('Comma-separated list. These values are persisted from the ad click URL and appended to the final deep link.')) ?></span></p></td></tr>
-                <tr><th><label for="meta_title"><?= $block->escapeHtml(__('Meta Title')) ?></label></th><td><input class="admin__control-text" type="text" name="meta_title" id="meta_title" value="<?= $block->escapeHtmlAttr((string)$model->getData('meta_title')) ?>" /></td></tr>
-                <tr><th><label for="meta_description"><?= $block->escapeHtml(__('Meta Description')) ?></label></th><td><textarea class="admin__control-textarea" name="meta_description" id="meta_description" rows="3"><?= $block->escapeHtml((string)$model->getData('meta_description')) ?></textarea></td></tr>
-            </tbody></table>
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $block->escapeHtml($block->getHeaderText()) ?></span>
+        </div>
+
+        <div class="admin__page-section-content">
+            <?php if ($frontendPreview): ?>
+                <div class="message message-notice">
+                    <div>
+                        <?= $block->escapeHtml(__('Ad URL')) ?>:
+                        <a target="_blank" rel="noopener noreferrer" href="<?= $block->escapeUrl($frontendPreview) ?>"><?= $block->escapeHtml($frontendPreview) ?></a>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <div class="message message-notice">
+                <div>
+                    <strong><?= $block->escapeHtml(__('Official TikTok Module')) ?>:</strong>
+                    <?= $official['connected'] ? $block->escapeHtml(__('Connected')) : $block->escapeHtml(__('Not Connected')) ?><br/>
+                    <strong><?= $block->escapeHtml(__('Official Pixel Code')) ?>:</strong>
+                    <?= $block->escapeHtml((string)($official['pixel_code'] ?: __('Not available'))) ?><br/>
+                    <strong><?= $block->escapeHtml(__('Pixel Tracking Enabled')) ?>:</strong>
+                    <?= $block->escapeHtml($official['pixel_tracking_enabled'] ? __('Yes') : __('No')) ?>
+                </div>
+            </div>
+
+            <div class="message message-notice">
+                <div>
+                    <?= $block->escapeHtml(__('Fields marked * are required. PC and Mobile fallback URLs are auto-generated from the TikTok PDP URL when you save. For images, uploaded local files will take priority over external URLs.')) ?>
+                </div>
+            </div>
+
+            <table class="admin__control-table" style="width:100%;max-width:1320px;">
+                <tbody>
+                    <tr>
+                        <th style="width:260px;"><label for="title"><?= $block->escapeHtml(__('Title *')) ?></label></th>
+                        <td><input class="admin__control-text" type="text" name="title" id="title" value="<?= $block->escapeHtmlAttr((string)$model->getData('title')) ?>" required /></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="identifier"><?= $block->escapeHtml(__('Identifier *')) ?></label></th>
+                        <td>
+                            <input class="admin__control-text" type="text" name="identifier" id="identifier" value="<?= $block->escapeHtmlAttr((string)$model->getData('identifier')) ?>" required />
+                            <p class="note"><span><?= $block->escapeHtml(__('The public ad URL will be /lp/{identifier}.')) ?></span></p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="website_id"><?= $block->escapeHtml(__('Website *')) ?></label></th>
+                        <td>
+                            <select class="admin__control-select" name="website_id" id="website_id">
+                                <?php foreach ($block->getWebsites() as $website): ?>
+                                    <option value="<?= (int)$website['value'] ?>" <?= (int)$model->getData('website_id') === (int)$website['value'] ? 'selected' : '' ?>>
+                                        <?= $block->escapeHtml($website['label']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="note"><span><?= $block->escapeHtml(__('Landing pages are website-scoped so they align with the official TikTok website-level config.')) ?></span></p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="is_active"><?= $block->escapeHtml(__('Enabled')) ?></label></th>
+                        <td>
+                            <select class="admin__control-select" name="is_active" id="is_active">
+                                <?php foreach ($yesNo as $value => $label): ?>
+                                    <option value="<?= (int)$value ?>" <?= (int)$model->getData('is_active') === (int)$value ? 'selected' : '' ?>>
+                                        <?= $block->escapeHtml($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="raw_pdp_url"><?= $block->escapeHtml(__('TikTok PDP URL *')) ?></label></th>
+                        <td>
+                            <textarea class="admin__control-textarea" name="raw_pdp_url" id="raw_pdp_url" rows="4" required><?= $block->escapeHtml((string)$model->getData('raw_pdp_url')) ?></textarea>
+                            <p class="note"><span><?= $block->escapeHtml(__('Paste the full TikTok PDP URL including chain_key and source. The module will parse product_id and generate PC/mobile fallbacks automatically.')) ?></span></p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="pc_fallback_url"><?= $block->escapeHtml(__('PC Fallback URL')) ?></label></th>
+                        <td>
+                            <input class="admin__control-text" type="text" name="pc_fallback_url" id="pc_fallback_url" value="<?= $block->escapeHtmlAttr((string)$model->getData('pc_fallback_url')) ?>" readonly="readonly" />
+                            <p class="note"><span><?= $block->escapeHtml(__('Auto-generated from the TikTok PDP URL after save.')) ?></span></p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="mobile_fallback_url"><?= $block->escapeHtml(__('Mobile Web Fallback URL')) ?></label></th>
+                        <td>
+                            <input class="admin__control-text" type="text" name="mobile_fallback_url" id="mobile_fallback_url" value="<?= $block->escapeHtmlAttr((string)$model->getData('mobile_fallback_url')) ?>" readonly="readonly" />
+                            <p class="note"><span><?= $block->escapeHtml(__('Auto-generated from the TikTok PDP URL after save.')) ?></span></p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="pixel_code_override"><?= $block->escapeHtml(__('Pixel Code Override')) ?></label></th>
+                        <td>
+                            <input class="admin__control-text" type="text" name="pixel_code_override" id="pixel_code_override" value="<?= $block->escapeHtmlAttr((string)$model->getData('pixel_code_override')) ?>" />
+                            <p class="note"><span><?= $block->escapeHtml(__('Leave blank to use the official website-level pixel code from Tiktok_Tiktok.')) ?></span></p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="content_name"><?= $block->escapeHtml(__('Pixel Content Name')) ?></label></th>
+                        <td><input class="admin__control-text" type="text" name="content_name" id="content_name" value="<?= $block->escapeHtmlAttr((string)$model->getData('content_name')) ?>" /></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="promo_bar_text"><?= $block->escapeHtml(__('Promo Bar Text')) ?></label></th>
+                        <td><textarea class="admin__control-textarea" name="promo_bar_text" id="promo_bar_text" rows="2"><?= $block->escapeHtml((string)$model->getData('promo_bar_text')) ?></textarea></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="headline"><?= $block->escapeHtml(__('Headline')) ?></label></th>
+                        <td><textarea class="admin__control-textarea" name="headline" id="headline" rows="2"><?= $block->escapeHtml((string)$model->getData('headline')) ?></textarea></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="subheadline"><?= $block->escapeHtml(__('Subheadline')) ?></label></th>
+                        <td><textarea class="admin__control-textarea" name="subheadline" id="subheadline" rows="3"><?= $block->escapeHtml((string)$model->getData('subheadline')) ?></textarea></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="cta_text"><?= $block->escapeHtml(__('CTA Button Text')) ?></label></th>
+                        <td><input class="admin__control-text" type="text" name="cta_text" id="cta_text" value="<?= $block->escapeHtmlAttr((string)$model->getData('cta_text')) ?>" /></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="desktop_message"><?= $block->escapeHtml(__('Desktop Message')) ?></label></th>
+                        <td><textarea class="admin__control-textarea" name="desktop_message" id="desktop_message" rows="2"><?= $block->escapeHtml((string)$model->getData('desktop_message')) ?></textarea></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="fail_message"><?= $block->escapeHtml(__('Failure Message')) ?></label></th>
+                        <td><textarea class="admin__control-textarea" name="fail_message" id="fail_message" rows="2"><?= $block->escapeHtml((string)$model->getData('fail_message')) ?></textarea></td>
+                    </tr>
+
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Hero Image')) ?></th>
+                        <td>
+                            <?php $renderImageField(
+                                'Hero Image',
+                                'hero_image_url',
+                                'hero_image_file',
+                                $model->getData('hero_image_url'),
+                                'Recommended for the main hero image at the top of the landing page.'
+                            ); ?>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><?= $block->escapeHtml(__('CTA Background Image')) ?></th>
+                        <td>
+                            <?php $renderImageField(
+                                'CTA Background Image',
+                                'cta_bg_image_url',
+                                'cta_bg_image_file',
+                                $model->getData('cta_bg_image_url'),
+                                'Used behind the main CTA button block and sticky CTA section.'
+                            ); ?>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><?= $block->escapeHtml(__('Promo Image')) ?></th>
+                        <td>
+                            <?php $renderImageField(
+                                'Promo Image',
+                                'promo_image_url',
+                                'promo_image_file',
+                                $model->getData('promo_image_url'),
+                                'Used for the lower promotional card image.'
+                            ); ?>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="head_jump_enabled"><?= $block->escapeHtml(__('Head Jump for TikTok WebView')) ?></label></th>
+                        <td>
+                            <select class="admin__control-select" name="head_jump_enabled" id="head_jump_enabled">
+                                <?php foreach ($yesNo as $value => $label): ?>
+                                    <option value="<?= (int)$value ?>" <?= (int)$model->getData('head_jump_enabled') === (int)$value ? 'selected' : '' ?>>
+                                        <?= $block->escapeHtml($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="head_jump_timeout_ms"><?= $block->escapeHtml(__('Head Jump Timeout (ms)')) ?></label></th>
+                        <td><input class="admin__control-text" type="number" min="0" name="head_jump_timeout_ms" id="head_jump_timeout_ms" value="<?= (int)$model->getData('head_jump_timeout_ms') ?>" /></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="body_auto_jump_enabled"><?= $block->escapeHtml(__('Auto Jump for Non-TikTok Browsers')) ?></label></th>
+                        <td>
+                            <select class="admin__control-select" name="body_auto_jump_enabled" id="body_auto_jump_enabled">
+                                <?php foreach ($yesNo as $value => $label): ?>
+                                    <option value="<?= (int)$value ?>" <?= (int)$model->getData('body_auto_jump_enabled') === (int)$value ? 'selected' : '' ?>>
+                                        <?= $block->escapeHtml($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="auto_jump_seconds"><?= $block->escapeHtml(__('Auto Jump Delay (seconds)')) ?></label></th>
+                        <td><input class="admin__control-text" type="number" min="0" name="auto_jump_seconds" id="auto_jump_seconds" value="<?= (int)$model->getData('auto_jump_seconds') ?>" /></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="manual_button_enabled"><?= $block->escapeHtml(__('Show Manual Jump Button')) ?></label></th>
+                        <td>
+                            <select class="admin__control-select" name="manual_button_enabled" id="manual_button_enabled">
+                                <?php foreach ($yesNo as $value => $label): ?>
+                                    <option value="<?= (int)$value ?>" <?= (int)$model->getData('manual_button_enabled') === (int)$value ? 'selected' : '' ?>>
+                                        <?= $block->escapeHtml($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="passthrough_params"><?= $block->escapeHtml(__('Passthrough Query Params')) ?></label></th>
+                        <td>
+                            <input class="admin__control-text" type="text" name="passthrough_params" id="passthrough_params" value="<?= $block->escapeHtmlAttr((string)$model->getData('passthrough_params')) ?>" />
+                            <p class="note"><span><?= $block->escapeHtml(__('Comma-separated list. These values are persisted from the ad click URL and appended to the final deep link.')) ?></span></p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="meta_title"><?= $block->escapeHtml(__('Meta Title')) ?></label></th>
+                        <td><input class="admin__control-text" type="text" name="meta_title" id="meta_title" value="<?= $block->escapeHtmlAttr((string)$model->getData('meta_title')) ?>" /></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="meta_description"><?= $block->escapeHtml(__('Meta Description')) ?></label></th>
+                        <td><textarea class="admin__control-textarea" name="meta_description" id="meta_description" rows="3"><?= $block->escapeHtml((string)$model->getData('meta_description')) ?></textarea></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
-    <div class="page-main-actions"><div class="page-actions-placeholder"></div><div class="page-actions"><button class="action-primary" type="submit" name="back" value="1"><span><?= $block->escapeHtml(__('Save and Continue')) ?></span></button><button class="action-primary" type="submit"><span><?= $block->escapeHtml(__('Save')) ?></span></button></div></div>
+
+    <div class="page-main-actions">
+        <div class="page-actions-placeholder"></div>
+        <div class="page-actions">
+            <button class="action-primary" type="submit" name="back" value="1"><span><?= $block->escapeHtml(__('Save and Continue')) ?></span></button>
+            <button class="action-primary" type="submit"><span><?= $block->escapeHtml(__('Save')) ?></span></button>
+        </div>
+    </div>
 </form>
+
+<script>
+require([], function () {
+    document.querySelectorAll('[data-dropzone]').forEach(function (zone) {
+        var input = zone.querySelector('[data-file-input]');
+        var meta = zone.querySelector('[data-file-meta]');
+
+        if (!input || !meta) {
+            return;
+        }
+
+        var refreshMeta = function () {
+            if (input.files && input.files.length > 0) {
+                var file = input.files[0];
+                var sizeKb = Math.round(file.size / 1024);
+                meta.textContent = file.name + ' (' + sizeKb + ' KB)';
+            } else {
+                meta.textContent = 'No file selected';
+            }
+        };
+
+        zone.addEventListener('click', function (e) {
+            if (e.target === input) {
+                return;
+            }
+            input.click();
+        });
+
+        input.addEventListener('change', refreshMeta);
+
+        zone.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            zone.classList.add('is-dragover');
+        });
+
+        zone.addEventListener('dragleave', function () {
+            zone.classList.remove('is-dragover');
+        });
+
+        zone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            zone.classList.remove('is-dragover');
+
+            if (!e.dataTransfer || !e.dataTransfer.files || e.dataTransfer.files.length === 0) {
+                return;
+            }
+
+            input.files = e.dataTransfer.files;
+            refreshMeta();
+        });
+    });
+});
+</script>

@@ -10,6 +10,8 @@ use Magento\Framework\Registry;
 use Magento\Store\Model\StoreManagerInterface;
 use Pynarae\TiktokLandingPages\Controller\Adminhtml\Page\Edit as EditController;
 use Pynarae\TiktokLandingPages\Model\Config;
+use Pynarae\TiktokLandingPages\Model\Media\AssetStorage;
+use Pynarae\TiktokLandingPages\Model\Media\AssetUrlResolver;
 use Pynarae\TiktokLandingPages\Model\Official\OfficialTikTokBridge;
 
 class Edit extends Template
@@ -23,6 +25,7 @@ class Edit extends Template
         private readonly OfficialTikTokBridge $officialTikTokBridge,
         private readonly DataPersistorInterface $dataPersistor,
         private readonly Config $config,
+        private readonly AssetUrlResolver $assetUrlResolver,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -80,17 +83,40 @@ class Edit extends Template
         return $model;
     }
 
-    public function getHeaderText(): string { return $this->getModel()->getId() ? (string)__('Edit Landing Page') : (string)__('New Landing Page'); }
-    public function getSaveUrl(): string { return $this->getUrl('*/*/save'); }
-    public function getBackUrl(): string { return $this->getUrl('*/*/index'); }
-    public function getDuplicateUrl(): ?string { $m=$this->getModel(); return $m->getId() ? $this->getUrl('*/*/duplicate',['id'=>$m->getId()]) : null; }
-    public function getDeleteUrl(): ?string { $m=$this->getModel(); return $m->getId() ? $this->getUrl('*/*/delete',['id'=>$m->getId()]) : null; }
+    public function getHeaderText(): string
+    {
+        return $this->getModel()->getId() ? (string)__('Edit Landing Page') : (string)__('New Landing Page');
+    }
+
+    public function getSaveUrl(): string
+    {
+        return $this->getUrl('*/*/save');
+    }
+
+    public function getBackUrl(): string
+    {
+        return $this->getUrl('*/*/index');
+    }
+
+    public function getDuplicateUrl(): ?string
+    {
+        $m = $this->getModel();
+        return $m->getId() ? $this->getUrl('*/*/duplicate', ['id' => $m->getId()]) : null;
+    }
+
+    public function getDeleteUrl(): ?string
+    {
+        $m = $this->getModel();
+        return $m->getId() ? $this->getUrl('*/*/delete', ['id' => $m->getId()]) : null;
+    }
 
     public function getWebsites(): array
     {
         $items = [];
         foreach ($this->storeManager->getWebsites() as $website) {
-            if ((int)$website->getId() === 0) { continue; }
+            if ((int)$website->getId() === 0) {
+                continue;
+            }
             $items[] = ['value' => (int)$website->getId(), 'label' => $website->getName()];
         }
         return $items;
@@ -102,7 +128,17 @@ class Edit extends Template
         try {
             return $this->officialTikTokBridge->getWebsiteConfig($websiteId);
         } catch (\Throwable) {
-            return ['official_module_available'=>false,'connected'=>false,'pixel_tracking_enabled'=>false,'advanced_user_tracking'=>false,'tp_cookie_enabled'=>false,'pixel_code'=>'','bc_id'=>'','catalog_id'=>'','manage_url'=>''];
+            return [
+                'official_module_available' => false,
+                'connected' => false,
+                'pixel_tracking_enabled' => false,
+                'advanced_user_tracking' => false,
+                'tp_cookie_enabled' => false,
+                'pixel_code' => '',
+                'bc_id' => '',
+                'catalog_id' => '',
+                'manage_url' => ''
+            ];
         }
     }
 
@@ -110,7 +146,9 @@ class Edit extends Template
     {
         $model = $this->getModel();
         $identifier = trim((string)$model->getData('identifier'));
-        if ($identifier === '') { return null; }
+        if ($identifier === '') {
+            return null;
+        }
         try {
             $website = $this->storeManager->getWebsite((int)$model->getData('website_id'));
             $store = $website->getDefaultStore();
@@ -120,6 +158,49 @@ class Edit extends Template
         }
     }
 
-    public function yesNoOptions(): array { return [1 => (string)__('Yes'), 0 => (string)__('No')]; }
-    private function getDefaultWebsiteId(): int { $websites=$this->getWebsites(); return (int)($websites[0]['value'] ?? 1); }
+    public function yesNoOptions(): array
+    {
+        return [1 => (string)__('Yes'), 0 => (string)__('No')];
+    }
+
+    public function getImagePreviewUrl(?string $value): ?string
+    {
+        return $this->assetUrlResolver->resolve($value);
+    }
+
+    public function getExternalImageFieldValue(?string $value): string
+    {
+        $value = trim((string)$value);
+        if ($value === '') {
+            return '';
+        }
+
+        return $this->assetUrlResolver->isExternalUrl($value) ? $value : '';
+    }
+
+    public function isManagedImage(?string $value): bool
+    {
+        return $this->assetUrlResolver->isManagedAsset($value);
+    }
+
+    public function getAllowedImageExtensionsLabel(): string
+    {
+        return implode(', ', AssetStorage::ALLOWED_EXTENSIONS);
+    }
+
+    public function getMaxUploadSizeMb(): int
+    {
+        return (int)(AssetStorage::MAX_FILE_SIZE / 1024 / 1024);
+    }
+
+    public function getManagedMediaBasePath(): string
+    {
+        return AssetStorage::BASE_MEDIA_PATH;
+    }
+
+    private function getDefaultWebsiteId(): int
+    {
+        $websites = $this->getWebsites();
+        return (int)($websites[0]['value'] ?? 1);
+    }
 }
