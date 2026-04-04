@@ -5,7 +5,7 @@ namespace Pynarae\TiktokLandingPages\Model\Media;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Filesystem;
-use Magento\Framework\Filesystem\DirectoryList;
+use Magento\Framework\App\Filesystem\DirectoryList;
 
 class AssetCopyService
 {
