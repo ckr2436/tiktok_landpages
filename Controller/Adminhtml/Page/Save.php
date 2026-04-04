@@ -63,8 +63,9 @@ class Save extends AbstractPage
                 valueField: 'hero_image_url',
                 fileField: 'hero_image_file',
                 deleteField: 'hero_image_url_delete',
+                existingField: 'hero_image_url_existing',
                 subDirectory: 'hero',
-                existingValue: (string)$model->getData('hero_image_url'),
+                modelValue: (string)$model->getData('hero_image_url'),
                 data: $data
             );
 
@@ -72,8 +73,9 @@ class Save extends AbstractPage
                 valueField: 'cta_bg_image_url',
                 fileField: 'cta_bg_image_file',
                 deleteField: 'cta_bg_image_url_delete',
+                existingField: 'cta_bg_image_url_existing',
                 subDirectory: 'cta',
-                existingValue: (string)$model->getData('cta_bg_image_url'),
+                modelValue: (string)$model->getData('cta_bg_image_url'),
                 data: $data
             );
 
@@ -81,8 +83,9 @@ class Save extends AbstractPage
                 valueField: 'promo_image_url',
                 fileField: 'promo_image_file',
                 deleteField: 'promo_image_url_delete',
+                existingField: 'promo_image_url_existing',
                 subDirectory: 'promo',
-                existingValue: (string)$model->getData('promo_image_url'),
+                modelValue: (string)$model->getData('promo_image_url'),
                 data: $data
             );
 
@@ -136,33 +139,36 @@ class Save extends AbstractPage
         string $valueField,
         string $fileField,
         string $deleteField,
+        string $existingField,
         string $subDirectory,
-        ?string $existingValue,
+        ?string $modelValue,
         array $data
     ): ?string {
-        $existingValue = $this->nullIfEmpty((string)$existingValue);
+        $modelValue = $this->nullIfEmpty((string)$modelValue);
+        $postedExistingValue = $this->nullIfEmpty((string)($data[$existingField] ?? ''));
+        $currentValue = $modelValue ?? $postedExistingValue;
 
         if (!empty($data[$deleteField])) {
-            if ($existingValue !== null) {
-                $this->assetStorage->deleteIfManaged($existingValue);
+            if ($currentValue !== null) {
+                $this->assetStorage->deleteIfManaged($currentValue);
             }
             return null;
         }
 
         if ($this->assetStorage->hasUpload($fileField)) {
-            return $this->assetStorage->saveUploadedImage($fileField, $subDirectory, $existingValue);
+            return $this->assetStorage->saveUploadedImage($fileField, $subDirectory, $currentValue);
         }
 
         $externalValue = $this->nullIfEmpty((string)($data[$valueField] ?? ''));
         if ($externalValue !== null) {
             $this->assertValidExternalImageUrl($externalValue);
-            if ($existingValue !== null && $existingValue !== $externalValue) {
-                $this->assetStorage->deleteIfManaged($existingValue);
+            if ($currentValue !== null && $currentValue !== $externalValue) {
+                $this->assetStorage->deleteIfManaged($currentValue);
             }
             return $externalValue;
         }
 
-        return $existingValue;
+        return $currentValue;
     }
 
     private function assertValidExternalImageUrl(string $url): void
