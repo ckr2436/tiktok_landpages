@@ -6,6 +6,8 @@
 $page = $config['page'];
 $content = $config['content'];
 $pixel = $config['pixel'];
+$tiktok = $config['tiktok'];
+$hasTikTokTarget = !empty($tiktok['raw_pdp_url']) && !empty($tiktok['product_id']);
 $metaTitle = $page['meta_title'] ?: $page['title'];
 $metaDescription = $page['meta_description'] ?: '';
 
@@ -54,6 +56,7 @@ $promoImageUrl = $content['resolved_promo_image_url'] ?? ($content['promo_image_
     }(window, document, 'ttq');
   </script>
 <?php endif; ?>
+  <?php if ($hasTikTokTarget): ?>
   <script>
   window.PY_TKLP_CONFIG = <?= $configJson ?>;
   (function () {
@@ -124,6 +127,9 @@ $promoImageUrl = $content['resolved_promo_image_url'] ?? ($content['promo_image_
     setTimeout(jumpNow, Math.max(0, parseInt(behavior.head_jump_timeout_ms || 180, 10)));
   })();
   </script>
+  <?php else: ?>
+  <script>window.PY_TKLP_CONFIG = <?= $configJson ?>;</script>
+  <?php endif; ?>
   <style>
     :root{--brand:#0b3a93;--text:#0f172a;--muted:#64748b;--line:#e5e7eb;--bg:#ffffff;--soft:#f8fafc}
     *{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
@@ -154,17 +160,18 @@ $promoImageUrl = $content['resolved_promo_image_url'] ?? ($content['promo_image_
           <div class="cta-overlay"></div>
           <div class="cta-inner">
             <?php if (!empty($content['promo_bar_text'])): ?><div class="cta-kicker"><?= $escaper->escapeHtml($content['promo_bar_text']) ?></div><?php endif; ?>
-            <?php if (!empty($config['behavior']['manual_button_enabled'])): ?><button type="button" class="btn heartbeat" data-cta="buy"><?= $escaper->escapeHtml($content['cta_text']) ?></button><?php endif; ?>
+            <?php if ($hasTikTokTarget && !empty($config['behavior']['manual_button_enabled'])): ?><button type="button" class="btn heartbeat" data-cta="buy"><?= $escaper->escapeHtml($content['cta_text']) ?></button><?php endif; ?>
           </div>
         </div>
       </div>
-      <p class="countdown"><span data-count-label>Loading…</span> <b data-count-num></b></p>
+      <?php if ($hasTikTokTarget): ?><p class="countdown"><span data-count-label>Loading...</span> <b data-count-num></b></p><?php endif; ?>
       <?php if ($promoImageUrl): ?><div class="promo card"><img src="<?= $escaper->escapeUrl($promoImageUrl) ?>" alt="<?= $escaper->escapeHtmlAttr($page['title']) ?>" loading="lazy" decoding="async"></div><?php endif; ?>
       <div class="note-card" data-desktop-note><?= nl2br($escaper->escapeHtml($content['desktop_message'])) ?></div>
     </section>
   </main>
-  <div class="sticky-cta" data-sticky-cta><div class="inner"><div class="cta-bg card"><?php if ($ctaBgImageUrl): ?><img src="<?= $escaper->escapeUrl($ctaBgImageUrl) ?>" alt="<?= $escaper->escapeHtmlAttr($page['title']) ?>" loading="lazy" decoding="async"><?php endif; ?><div class="cta-overlay"></div><div class="cta-inner"><?php if (!empty($config['behavior']['manual_button_enabled'])): ?><button type="button" class="btn heartbeat" data-cta="buy"><?= $escaper->escapeHtml($content['cta_text']) ?></button><?php endif; ?></div></div></div></div>
+  <?php if ($hasTikTokTarget): ?><div class="sticky-cta" data-sticky-cta><div class="inner"><div class="cta-bg card"><?php if ($ctaBgImageUrl): ?><img src="<?= $escaper->escapeUrl($ctaBgImageUrl) ?>" alt="<?= $escaper->escapeHtmlAttr($page['title']) ?>" loading="lazy" decoding="async"><?php endif; ?><div class="cta-overlay"></div><div class="cta-inner"><?php if (!empty($config['behavior']['manual_button_enabled'])): ?><button type="button" class="btn heartbeat" data-cta="buy"><?= $escaper->escapeHtml($content['cta_text']) ?></button><?php endif; ?></div></div></div></div><?php endif; ?>
   <div id="pynarae-tiktok-toast" class="toast"></div>
+  <?php if ($hasTikTokTarget): ?>
   <script>
   (function () {
     var cfg = window.PY_TKLP_CONFIG || {};
@@ -185,12 +192,13 @@ $promoImageUrl = $content['resolved_promo_image_url'] ?? ($content['promo_image_
     function markLeave(){didLeavePage=true;} document.addEventListener('visibilitychange',function(){if(document.hidden)markLeave();}); window.addEventListener('pagehide',markLeave); window.addEventListener('blur',markLeave);
     function buildDeepLink(){var nowMs=Date.now();var paramsUrl=encodeURIComponent(String(tiktok.raw_pdp_url||''));var requestParams=encodeURIComponent(JSON.stringify({product_id:[String(tiktok.product_id||'')]}));var trackParams=encodeURIComponent(JSON.stringify({source_page_type:'anchor',enable_shop_tab_popup:1}));var trafficDiversionInfo=encodeURIComponent(JSON.stringify({traffic_out_source:'affiliate_links',page_name:'product_detail'}));var mallExtraInfo=encodeURIComponent(JSON.stringify({mall_landing_page:'product_detail',mall_homepage_visited_type:2}));var url='snssdk1233://ec/pdp'+'?biz_type=0'+'&gd_label=click_product_detail_s_anchor_e__f_anchor_fp__fps_affiliate_links_rf_tt_video'+'&need_mall=1'+'&needlaunchlog=1'+'&page_name=reflow_pdp'+'&params_url='+paramsUrl+'&requestParams='+requestParams+'&trackParams='+trackParams+'&ug_medium=fe_component'+'&jump_time='+nowMs+'&is_commerce=1'+'&page_name=product_detail'+'&media_source=channelshare'+'&previous_page=deeplink_product_detail_anchor'+'&ug_media_source=deeplink_product_detail_anchor'+'&traffic_diversion_info='+trafficDiversionInfo+'&mall_extra_info='+mallExtraInfo;passthrough.forEach(function(k){var v=getPersistedOrQueryParam(k);if(v)url+='&'+k+'='+encodeURIComponent(v);});return url;}
     function showToast(msg){if(!toast)return;toast.innerText=msg;toast.style.display='block';setTimeout(function(){toast.style.display='none';},2200);}
-    function trackViewContent(){try{if(window.ttq){ttq.track('ViewContent',{contents:[{content_id:String(tiktok.product_id||''),content_type:'product',content_name:String(tiktok.content_name||'')}],event_id:String(getPersistedOrQueryParam('ttclid')||'no_ttclid')+'_'+Date.now()});}}catch(_){}} 
+    function trackViewContent(){try{if(window.ttq){ttq.track('ViewContent',{contents:[{content_id:String(tiktok.product_id||''),content_type:'product',content_name:String(tiktok.content_name||'')}],event_id:String(getPersistedOrQueryParam('ttclid')||'no_ttclid')+'_'+Date.now()});}}catch(_){}}
     function openTarget(manual){didLeavePage=false;if(env.is_desktop){var desktopUrl=String(tiktok.pc_fallback_url||tiktok.mobile_fallback_url||'');if(desktopUrl){location.href=desktopUrl;}return;}var deep=buildDeepLink();trackViewContent();var fallbackUrl=String(tiktok.mobile_fallback_url||tiktok.pc_fallback_url||'');var timer=setTimeout(function(){if(!didLeavePage&&document.visibilityState==='visible'){showToast(document.body.getAttribute('data-msg-fail')||'Unable to open TikTok app.');if(fallbackUrl){setTimeout(function(){location.href=fallbackUrl;},700);}}},manual?900:1200);try{location.href=deep;}catch(_){}setTimeout(function(){clearTimeout(timer);},2500);}
-    function startCountdown(){if(sticky){sticky.style.display=behavior.manual_button_enabled?'block':'none';}countLabel.textContent=env.is_desktop?(behavior.body_auto_jump_enabled?'Opening web fallback in':'Desktop fallback ready'):(behavior.body_auto_jump_enabled?'Opening in':'Ready');var seconds=parseInt(behavior.auto_jump_seconds||0,10);if(!behavior.body_auto_jump_enabled||seconds<=0){countNum.textContent='0s';return;}countNum.textContent=seconds+'s';var remain=seconds;var timer=setInterval(function(){remain-=1;if(remain<=0){clearInterval(timer);countNum.textContent='0s';openTarget(false);return;}countNum.textContent=remain+'s';},1000);}
+    function startCountdown(){if(sticky){sticky.style.display=behavior.manual_button_enabled?'block':'none';}if(!countLabel||!countNum){return;}countLabel.textContent=env.is_desktop?(behavior.body_auto_jump_enabled?'Opening web fallback in':'Desktop fallback ready'):(behavior.body_auto_jump_enabled?'Opening in':'Ready');var seconds=parseInt(behavior.auto_jump_seconds||0,10);if(!behavior.body_auto_jump_enabled||seconds<=0){countNum.textContent='0s';return;}countNum.textContent=seconds+'s';var remain=seconds;var timer=setInterval(function(){remain-=1;if(remain<=0){clearInterval(timer);countNum.textContent='0s';openTarget(false);return;}countNum.textContent=remain+'s';},1000);}
     persistParams(); buttons.forEach(function(btn){btn.addEventListener('click',function(e){e.preventDefault();openTarget(true);});});
-    if(env.is_tiktok_webview&&behavior.head_jump_enabled){countLabel.textContent='Opening TikTok…';countNum.textContent='';if(sticky){sticky.style.display='none';}}else{startCountdown();}
+    if(env.is_tiktok_webview&&behavior.head_jump_enabled){if(countLabel){countLabel.textContent='Opening TikTok...';}if(countNum){countNum.textContent='';}if(sticky){sticky.style.display='none';}}else{startCountdown();}
   })();
   </script>
+  <?php endif; ?>
 </body>
 </html>
