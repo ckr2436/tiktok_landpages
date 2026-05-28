@@ -84,6 +84,9 @@ $renderImageField = function (
 };
 ?>
 
+<style>
+    .py-tklp-required-star { color: #e22626; font-weight: 700; }
+</style>
 
 <div class="page-main-actions">
     <div class="page-actions-placeholder"></div>
@@ -134,21 +137,21 @@ $renderImageField = function (
             </div>
 
             <div class="message message-notice">
-                <div><?= $block->escapeHtml(__('Fields marked * are required. PC and Mobile fallback URLs are auto-generated from the TikTok PDP URL when you save. For images, uploaded local files will take priority over external URLs.')) ?></div>
+                <div><?= $block->escapeHtml(__('Fields marked')) ?> <span class="py-tklp-required-star">*</span> <?= $block->escapeHtml(__('are required. TikTok PDP URL is optional. When it is filled, PC and Mobile fallback URLs are auto-generated after save. When it is empty, the landing page renders without redirecting to TikTok. For images, uploaded local files will take priority over external URLs.')) ?></div>
             </div>
 
             <table class="admin__control-table" style="width:100%;max-width:1320px;">
                 <tbody>
                     <tr>
-                        <th style="width:260px;"><label for="title"><?= $block->escapeHtml(__('Title *')) ?></label></th>
+                        <th style="width:260px;"><label for="title"><?= $block->escapeHtml(__('Title')) ?> <span class="py-tklp-required-star">*</span></label></th>
                         <td><input class="admin__control-text" type="text" name="title" id="title" value="<?= $block->escapeHtmlAttr((string)$model->getData('title')) ?>" required /></td>
                     </tr>
                     <tr>
-                        <th><label for="identifier"><?= $block->escapeHtml(__('Identifier *')) ?></label></th>
+                        <th><label for="identifier"><?= $block->escapeHtml(__('Identifier')) ?> <span class="py-tklp-required-star">*</span></label></th>
                         <td><input class="admin__control-text" type="text" name="identifier" id="identifier" value="<?= $block->escapeHtmlAttr((string)$model->getData('identifier')) ?>" required /><p class="note"><span><?= $block->escapeHtml(__('The public ad URL will be /lp/{identifier}.')) ?></span></p></td>
                     </tr>
                     <tr>
-                        <th><label for="website_id"><?= $block->escapeHtml(__('Website *')) ?></label></th>
+                        <th><label for="website_id"><?= $block->escapeHtml(__('Website')) ?> <span class="py-tklp-required-star">*</span></label></th>
                         <td><select class="admin__control-select" name="website_id" id="website_id"><?php foreach ($block->getWebsites() as $website): ?><option value="<?= (int)$website['value'] ?>" <?= (int)$model->getData('website_id') === (int)$website['value'] ? 'selected' : '' ?>><?= $block->escapeHtml($website['label']) ?></option><?php endforeach; ?></select><p class="note"><span><?= $block->escapeHtml(__('Landing pages are website-scoped so they align with the official TikTok website-level config.')) ?></span></p></td>
                     </tr>
                     <tr>
@@ -156,16 +159,16 @@ $renderImageField = function (
                         <td><select class="admin__control-select" name="is_active" id="is_active"><?php foreach ($yesNo as $value => $label): ?><option value="<?= (int)$value ?>" <?= (int)$model->getData('is_active') === (int)$value ? 'selected' : '' ?>><?= $block->escapeHtml($label) ?></option><?php endforeach; ?></select></td>
                     </tr>
                     <tr>
-                        <th><label for="raw_pdp_url"><?= $block->escapeHtml(__('TikTok PDP URL *')) ?></label></th>
-                        <td><textarea class="admin__control-textarea" name="raw_pdp_url" id="raw_pdp_url" rows="4" required><?= $block->escapeHtml((string)$model->getData('raw_pdp_url')) ?></textarea><p class="note"><span><?= $block->escapeHtml(__('Paste the full TikTok PDP URL including chain_key and source. The module will parse product_id and generate PC/mobile fallbacks automatically.')) ?></span></p></td>
+                        <th><label for="raw_pdp_url"><?= $block->escapeHtml(__('TikTok PDP URL')) ?></label></th>
+                        <td><textarea class="admin__control-textarea" name="raw_pdp_url" id="raw_pdp_url" rows="4"><?= $block->escapeHtml((string)$model->getData('raw_pdp_url')) ?></textarea><p class="note"><span><?= $block->escapeHtml(__('Optional. Paste the full TikTok PDP URL including chain_key and source only when this landing page should redirect to TikTok. Leave blank to publish a landing page without redirect.')) ?></span></p></td>
                     </tr>
                     <tr>
                         <th><label for="pc_fallback_url"><?= $block->escapeHtml(__('PC Fallback URL')) ?></label></th>
-                        <td><input class="admin__control-text" type="text" name="pc_fallback_url" id="pc_fallback_url" value="<?= $block->escapeHtmlAttr((string)$model->getData('pc_fallback_url')) ?>" readonly="readonly" /><p class="note"><span><?= $block->escapeHtml(__('Auto-generated from the TikTok PDP URL after save.')) ?></span></p></td>
+                        <td><input class="admin__control-text" type="text" name="pc_fallback_url" id="pc_fallback_url" value="<?= $block->escapeHtmlAttr((string)$model->getData('pc_fallback_url')) ?>" readonly="readonly" /><p class="note"><span><?= $block->escapeHtml(__('Auto-generated from the TikTok PDP URL after save. Empty when TikTok PDP URL is not set.')) ?></span></p></td>
                     </tr>
                     <tr>
                         <th><label for="mobile_fallback_url"><?= $block->escapeHtml(__('Mobile Web Fallback URL')) ?></label></th>
-                        <td><input class="admin__control-text" type="text" name="mobile_fallback_url" id="mobile_fallback_url" value="<?= $block->escapeHtmlAttr((string)$model->getData('mobile_fallback_url')) ?>" readonly="readonly" /><p class="note"><span><?= $block->escapeHtml(__('Auto-generated from the TikTok PDP URL after save.')) ?></span></p></td>
+                        <td><input class="admin__control-text" type="text" name="mobile_fallback_url" id="mobile_fallback_url" value="<?= $block->escapeHtmlAttr((string)$model->getData('mobile_fallback_url')) ?>" readonly="readonly" /><p class="note"><span><?= $block->escapeHtml(__('Auto-generated from the TikTok PDP URL after save. Empty when TikTok PDP URL is not set.')) ?></span></p></td>
                     </tr>
                     <tr>
                         <th><label for="pixel_code_override"><?= $block->escapeHtml(__('Pixel Code Override')) ?></label></th>
