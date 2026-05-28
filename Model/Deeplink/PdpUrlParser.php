@@ -15,7 +15,13 @@ class PdpUrlParser
     {
         $url = trim($rawUrl);
         if ($url === '') {
-            throw new LocalizedException(__('TikTok PDP URL is required.'));
+            return [
+                'raw_pdp_url' => '',
+                'product_id' => '',
+                'source' => '',
+                'pc_fallback_url' => '',
+                'mobile_fallback_url' => '',
+            ];
         }
 
         $parts = parse_url($url);
