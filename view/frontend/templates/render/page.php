@@ -83,10 +83,8 @@ $promoImageUrl = $content['resolved_promo_image_url'] ?? ($content['promo_image_
       try {
         var parsed = new URL(raw, location.href);
         var parts = parsed.pathname.split('/').filter(Boolean);
-        var pdpIndex = parts.indexOf('pdp');
         var productId = String(tiktok.product_id || (parts.length ? parts[parts.length - 1] : ''));
-        var slugParts = (pdpIndex >= 0 && parts.length > pdpIndex + 2) ? parts.slice(pdpIndex + 1, parts.length - 1) : [];
-        var path = '/shop/pdp/' + (slugParts.length ? slugParts.join('/') + '/' : '') + productId;
+        var path = '/shop/pdp/' + productId;
         var chainValue = parsed.searchParams.get('chain_key') || '';
         var chainKey = '';
         var query = [];
@@ -101,31 +99,54 @@ $promoImageUrl = $content['resolved_promo_image_url'] ?? ($content['promo_image_
         return raw;
       }
     }
+    function getWid() {
+      var existing = qs('wid') || qs('web_id');
+      if (existing) { return existing; }
+      try {
+        var saved = localStorage.getItem(storagePrefix + 'wid');
+        if (saved) { return saved; }
+        var wid = String(Math.floor(Math.random() * 9) + 1);
+        for (var i = 0; i < 18; i++) { wid += String(Math.floor(Math.random() * 10)); }
+        localStorage.setItem(storagePrefix + 'wid', wid);
+        return wid;
+      } catch (_) {
+        return '';
+      }
+    }
     function buildDeepLink() {
       var nowMs = Date.now();
       var paramsUrl = encodeURIComponent(buildShopPdpUrl());
       var requestParams = encodeURIComponent(JSON.stringify({ product_id: [String(tiktok.product_id || '')] }));
-      var trackParams = encodeURIComponent(JSON.stringify({ source_page_type: 'anchor', enable_shop_tab_popup: 1 }));
+      var wid = encodeURIComponent(getWid());
       var trafficDiversionInfo = encodeURIComponent(JSON.stringify({ traffic_out_source: 'affiliate_links', page_name: 'product_detail' }));
-      var mallExtraInfo = encodeURIComponent(JSON.stringify({ mall_landing_page: 'product_detail', mall_homepage_visited_type: 2 }));
+      var mallExtraInfo = encodeURIComponent(JSON.stringify({ mall_out_source: 'seo.web_product_detail.out_of_app', mall_landing_page: 'product_detail', mall_homepage_visited_type: 2 }));
       var url = 'snssdk1233://ec/pdp'
         + '?biz_type=0'
-        + '&gd_label=click_product_detail_s_anchor_e__f_anchor_fp__fps_affiliate_links_rf_tt_video'
+        + '&gd_label=click_wap_p_product_detail_t_launch_pop_up_s_anchor_e__f_anchor_fp__fps_affiliate_links_rf_tt_video'
         + '&need_mall=1'
         + '&needlaunchlog=1'
         + '&page_name=reflow_pdp'
         + '&params_url=' + paramsUrl
+        + '&refer=web'
         + '&requestParams=' + requestParams
-        + '&trackParams=' + trackParams
+        + '&trackParams='
+        + '&needlaunchlog=1'
         + '&ug_medium=fe_component'
         + '&jump_time=' + nowMs
         + '&is_commerce=1'
+        + '&need_mall=1'
         + '&page_name=product_detail'
-        + '&media_source=channelshare'
-        + '&previous_page=deeplink_product_detail_anchor'
-        + '&ug_media_source=deeplink_product_detail_anchor'
+        + '&wid=' + wid
+        + '&media_source=channelshareh5'
+        + '&enter_method=web'
+        + '&enter_from='
+        + '&enter_from_info='
+        + '&source_page_type='
+        + '&previous_page=deeplink_ug_seo_outside_gg_product_detail_anchor_web'
+        + '&ug_media_source=deeplink_ug_seo_outside_gg_product_detail_anchor_web'
         + '&traffic_diversion_info=' + trafficDiversionInfo
-        + '&mall_extra_info=' + mallExtraInfo;
+        + '&mall_extra_info=' + mallExtraInfo
+        + '&trackParams=';
       passthrough.forEach(function (k) { var v = getPersistedOrQueryParam(k); if (v) url += '&' + k + '=' + encodeURIComponent(v); });
       return url;
     }
@@ -213,9 +234,10 @@ $promoImageUrl = $content['resolved_promo_image_url'] ?? ($content['promo_image_
     function qs(k){var m=location.search.match(new RegExp('[?&]'+k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'=([^&]*)'));return m?decodeURIComponent(m[1]):'';}
     function persistParams(){try{passthrough.forEach(function(k){var v=qs(k);if(v)localStorage.setItem(storagePrefix+k,v);});}catch(_){}}
     function getPersistedOrQueryParam(k){try{return localStorage.getItem(storagePrefix+k)||qs(k)||'';}catch(_){return qs(k)||'';}}
-    function buildShopPdpUrl(){var raw=String(tiktok.raw_pdp_url||'');if(!raw){return '';}try{var parsed=new URL(raw,location.href);var parts=parsed.pathname.split('/').filter(Boolean);var pdpIndex=parts.indexOf('pdp');var productId=String(tiktok.product_id||(parts.length?parts[parts.length-1]:''));var slugParts=(pdpIndex>=0&&parts.length>pdpIndex+2)?parts.slice(pdpIndex+1,parts.length-1):[];var path='/shop/pdp/'+(slugParts.length?slugParts.join('/')+'/':'')+productId;var chainValue=parsed.searchParams.get('chain_key')||'';var chainKey='';var query=[];if(chainValue){try{chainKey=encodeURIComponent(JSON.stringify(JSON.parse(chainValue)));}catch(_){chainKey=encodeURIComponent(chainValue);}query.push('chain_key='+chainKey);}query.push('source=anchor');return parsed.protocol+'//'+parsed.host+path+'?'+query.join('&');}catch(_){return raw;}}
+    function buildShopPdpUrl(){var raw=String(tiktok.raw_pdp_url||'');if(!raw){return '';}try{var parsed=new URL(raw,location.href);var parts=parsed.pathname.split('/').filter(Boolean);var productId=String(tiktok.product_id||(parts.length?parts[parts.length-1]:''));var path='/shop/pdp/'+productId;var chainValue=parsed.searchParams.get('chain_key')||'';var chainKey='';var query=[];if(chainValue){try{chainKey=encodeURIComponent(JSON.stringify(JSON.parse(chainValue)));}catch(_){chainKey=encodeURIComponent(chainValue);}query.push('chain_key='+chainKey);}query.push('source=anchor');return parsed.protocol+'//'+parsed.host+path+'?'+query.join('&');}catch(_){return raw;}}
+    function getWid(){var existing=qs('wid')||qs('web_id');if(existing){return existing;}try{var saved=localStorage.getItem(storagePrefix+'wid');if(saved){return saved;}var wid=String(Math.floor(Math.random()*9)+1);for(var i=0;i<18;i++){wid+=String(Math.floor(Math.random()*10));}localStorage.setItem(storagePrefix+'wid',wid);return wid;}catch(_){return '';}}
     function markLeave(){didLeavePage=true;} document.addEventListener('visibilitychange',function(){if(document.hidden)markLeave();}); window.addEventListener('pagehide',markLeave); window.addEventListener('blur',markLeave);
-    function buildDeepLink(){var nowMs=Date.now();var paramsUrl=encodeURIComponent(buildShopPdpUrl());var requestParams=encodeURIComponent(JSON.stringify({product_id:[String(tiktok.product_id||'')]}));var trackParams=encodeURIComponent(JSON.stringify({source_page_type:'anchor',enable_shop_tab_popup:1}));var trafficDiversionInfo=encodeURIComponent(JSON.stringify({traffic_out_source:'affiliate_links',page_name:'product_detail'}));var mallExtraInfo=encodeURIComponent(JSON.stringify({mall_landing_page:'product_detail',mall_homepage_visited_type:2}));var url='snssdk1233://ec/pdp'+'?biz_type=0'+'&gd_label=click_product_detail_s_anchor_e__f_anchor_fp__fps_affiliate_links_rf_tt_video'+'&need_mall=1'+'&needlaunchlog=1'+'&page_name=reflow_pdp'+'&params_url='+paramsUrl+'&requestParams='+requestParams+'&trackParams='+trackParams+'&ug_medium=fe_component'+'&jump_time='+nowMs+'&is_commerce=1'+'&need_mall=1'+'&page_name=product_detail'+'&media_source=channelshare'+'&previous_page=deeplink_product_detail_anchor'+'&ug_media_source=deeplink_product_detail_anchor'+'&traffic_diversion_info='+trafficDiversionInfo+'&mall_extra_info='+mallExtraInfo;passthrough.forEach(function(k){var v=getPersistedOrQueryParam(k);if(v)url+='&'+k+'='+encodeURIComponent(v);});return url;}
+    function buildDeepLink(){var nowMs=Date.now();var paramsUrl=encodeURIComponent(buildShopPdpUrl());var requestParams=encodeURIComponent(JSON.stringify({product_id:[String(tiktok.product_id||'')]}));var wid=encodeURIComponent(getWid());var trafficDiversionInfo=encodeURIComponent(JSON.stringify({traffic_out_source:'affiliate_links',page_name:'product_detail'}));var mallExtraInfo=encodeURIComponent(JSON.stringify({mall_out_source:'seo.web_product_detail.out_of_app',mall_landing_page:'product_detail',mall_homepage_visited_type:2}));var url='snssdk1233://ec/pdp'+'?biz_type=0'+'&gd_label=click_wap_p_product_detail_t_launch_pop_up_s_anchor_e__f_anchor_fp__fps_affiliate_links_rf_tt_video'+'&need_mall=1'+'&needlaunchlog=1'+'&page_name=reflow_pdp'+'&params_url='+paramsUrl+'&refer=web'+'&requestParams='+requestParams+'&trackParams='+'&needlaunchlog=1'+'&ug_medium=fe_component'+'&jump_time='+nowMs+'&is_commerce=1'+'&need_mall=1'+'&page_name=product_detail'+'&wid='+wid+'&media_source=channelshareh5'+'&enter_method=web'+'&enter_from='+'&enter_from_info='+'&source_page_type='+'&previous_page=deeplink_ug_seo_outside_gg_product_detail_anchor_web'+'&ug_media_source=deeplink_ug_seo_outside_gg_product_detail_anchor_web'+'&traffic_diversion_info='+trafficDiversionInfo+'&mall_extra_info='+mallExtraInfo+'&trackParams=';passthrough.forEach(function(k){var v=getPersistedOrQueryParam(k);if(v)url+='&'+k+'='+encodeURIComponent(v);});return url;}
     function showToast(msg){if(!toast)return;toast.innerText=msg;toast.style.display='block';setTimeout(function(){toast.style.display='none';},2200);}
     function trackViewContent(){try{if(window.ttq){ttq.track('ViewContent',{contents:[{content_id:String(tiktok.product_id||''),content_type:'product',content_name:String(tiktok.content_name||'')}],event_id:String(getPersistedOrQueryParam('ttclid')||'no_ttclid')+'_'+Date.now()});}}catch(_){}}
     function openTarget(manual){didLeavePage=false;if(env.is_desktop){var desktopUrl=String(tiktok.pc_fallback_url||tiktok.mobile_fallback_url||'');if(desktopUrl){location.href=desktopUrl;}return;}var deep=buildDeepLink();trackViewContent();var fallbackUrl=String(tiktok.mobile_fallback_url||tiktok.pc_fallback_url||'');var timer=setTimeout(function(){if(!didLeavePage&&document.visibilityState==='visible'){showToast(document.body.getAttribute('data-msg-fail')||'Unable to open TikTok app.');if(fallbackUrl){setTimeout(function(){location.href=fallbackUrl;},700);}}},manual?900:1200);try{location.href=deep;}catch(_){}setTimeout(function(){clearTimeout(timer);},2500);}
