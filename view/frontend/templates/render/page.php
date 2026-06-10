@@ -140,7 +140,7 @@ $promoImageUrl = $content['resolved_promo_image_url'] ?? ($content['promo_image_
       } catch (_) {}
     }
     persistParams();
-    if (!env.is_tiktok_webview || !behavior.head_jump_enabled) { return; }
+    if (!env.is_mobile || !behavior.head_jump_enabled) { return; }
     if (window.__PY_TKLP_HEAD_JUMP__) { return; }
     window.__PY_TKLP_HEAD_JUMP__ = true;
     trackViewContent();
@@ -221,7 +221,7 @@ $promoImageUrl = $content['resolved_promo_image_url'] ?? ($content['promo_image_
     function openTarget(manual){didLeavePage=false;if(env.is_desktop){var desktopUrl=String(tiktok.pc_fallback_url||tiktok.mobile_fallback_url||'');if(desktopUrl){location.href=desktopUrl;}return;}var deep=buildDeepLink();trackViewContent();var fallbackUrl=String(tiktok.mobile_fallback_url||tiktok.pc_fallback_url||'');var timer=setTimeout(function(){if(!didLeavePage&&document.visibilityState==='visible'){showToast(document.body.getAttribute('data-msg-fail')||'Unable to open TikTok app.');if(fallbackUrl){setTimeout(function(){location.href=fallbackUrl;},700);}}},manual?900:1200);try{location.href=deep;}catch(_){}setTimeout(function(){clearTimeout(timer);},2500);}
     function startCountdown(){if(sticky){sticky.style.display=behavior.manual_button_enabled?'block':'none';}if(!countLabel||!countNum){return;}countLabel.textContent=env.is_desktop?(behavior.body_auto_jump_enabled?'Opening web fallback in':'Desktop fallback ready'):(behavior.body_auto_jump_enabled?'Opening in':'Ready');var seconds=parseInt(behavior.auto_jump_seconds||0,10);if(!behavior.body_auto_jump_enabled||seconds<=0){countNum.textContent='0s';return;}countNum.textContent=seconds+'s';var remain=seconds;var timer=setInterval(function(){remain-=1;if(remain<=0){clearInterval(timer);countNum.textContent='0s';openTarget(false);return;}countNum.textContent=remain+'s';},1000);}
     persistParams(); buttons.forEach(function(btn){btn.addEventListener('click',function(e){e.preventDefault();openTarget(true);});});
-    if(env.is_tiktok_webview&&behavior.head_jump_enabled){if(countLabel){countLabel.textContent='Opening TikTok...';}if(countNum){countNum.textContent='';}if(sticky){sticky.style.display='none';}}else{startCountdown();}
+    if(env.is_mobile&&behavior.head_jump_enabled){if(countLabel){countLabel.textContent='Opening TikTok...';}if(countNum){countNum.textContent='';}if(sticky){sticky.style.display='none';}}else{startCountdown();}
   })();
   </script>
   <?php endif; ?>
