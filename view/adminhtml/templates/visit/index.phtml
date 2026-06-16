@@ -1,0 +1,294 @@
+<?php
+/** @var \Pynarae\TiktokLandingPages\Block\Adminhtml\Visit\Index $block */
+$filters = $block->getFilters();
+$visits = $block->getVisits();
+$conversions = $block->getLatestConversions($visits);
+$recommendedParams = 'utm_source=tiktok&utm_medium=paid&utm_id=__CAMPAIGN_ID__&utm_campaign=__CAMPAIGN_NAME__&utm_content=__ADID_V2__&utm_term=__AID_NAME__&campaign_id=__CAMPAIGN_ID__&campaign_name=__CAMPAIGN_NAME__&adgroup_id=__AID__&adgroup_name=__AID_NAME__&ad_id=__ADID_V2__&ad_name=__ADID_V2_NAME__&creative_id=__CID__&creative_name=__CID_NAME__&placement=__PLACEMENT__';
+?>
+<style>
+    .pynarae-visit-toolbar{background:#fff;border:1px solid #d6d6d6;border-radius:8px;margin:0 0 18px;padding:18px}
+    .pynarae-visit-grid{display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:14px}
+    .pynarae-visit-grid label{display:block;font-weight:600;margin-bottom:6px;color:#303030}
+    .pynarae-visit-grid .wide{grid-column:span 2}
+    .pynarae-visit-actions{display:flex;gap:10px;align-items:center;margin-top:14px}
+    .pynarae-summary{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+    .pynarae-pill{background:#f5f7fa;border:1px solid #d8dde6;border-radius:999px;padding:7px 12px;font-weight:600}
+    .pynarae-table-wrap{overflow:auto;background:#fff;border:1px solid #d6d6d6;border-radius:8px}
+    .pynarae-table{width:100%;border-collapse:separate;border-spacing:0;min-width:2200px}
+    .pynarae-table th{background:#f8fafc;border-bottom:1px solid #d6d6d6;text-align:left;padding:12px;font-weight:700;white-space:nowrap}
+    .pynarae-table td{border-bottom:1px solid #ececec;padding:12px;vertical-align:top}
+    .pynarae-table tr:last-child td{border-bottom:0}
+    .pynarae-muted{color:#687385;font-size:12px;line-height:1.45}
+    .pynarae-code{font-family:Menlo,Consolas,monospace;font-size:12px;word-break:break-all}
+    .pynarae-param{display:grid;grid-template-columns:92px minmax(0,1fr);gap:5px;margin:2px 0}
+    .pynarae-param b{color:#303030}
+    .pynarae-raw summary{cursor:pointer;color:#0b3a63;font-size:12px;font-weight:700;margin-top:6px}
+    .pynarae-status{display:inline-block;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;text-transform:uppercase}
+    .pynarae-status.sent{background:#e6f4ea;color:#137333}
+    .pynarae-status.failed{background:#fce8e6;color:#a50e0e}
+    .pynarae-status.no-event{background:#eef2f7;color:#536171}
+    .pynarae-report{min-width:360px}
+    .pynarae-report summary{cursor:pointer;color:#0b3a63;font-weight:700}
+    .pynarae-report-form{display:grid;grid-template-columns:1fr 110px 82px;gap:8px;margin-top:10px}
+    .pynarae-report-form .full{grid-column:1/-1}
+    .pynarae-note{background:#fff8e5;border:1px solid #f0d68a;border-radius:8px;color:#6c5200;margin:0 0 16px;padding:12px 14px}
+    .pynarae-param-guide{background:#f6fbff;border:1px solid #b9d9f4;border-radius:8px;margin:0 0 16px;padding:16px}
+    .pynarae-param-guide h3{margin:0 0 8px;font-size:16px;color:#0b3a63}
+    .pynarae-param-guide textarea{font-family:Menlo,Consolas,monospace;min-height:74px;resize:vertical;width:100%}
+    .pynarae-param-guide ul{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:6px 18px;margin:12px 0 0;padding-left:18px}
+    .pynarae-param-guide li{margin:0}
+    @media (max-width:1100px){.pynarae-visit-grid{grid-template-columns:repeat(2,minmax(180px,1fr))}.pynarae-visit-grid .wide{grid-column:span 2}}
+</style>
+
+<div class="pynarae-note">
+    <?= $block->escapeHtml(__('Use this page to match TikTok Shop orders back to landing page visits. Filter by landing URL, visit time, IP, Cloudflare location, ttclid, campaign, ad group, ad ID, placement, UTM, or creative content, then send a server-side Purchase event from the matching row.')) ?>
+</div>
+
+<div class="pynarae-param-guide">
+    <h3><?= $block->escapeHtml(__('Recommended TikTok Ads URL parameters')) ?></h3>
+    <p><?= $block->escapeHtml(__('Paste this into TikTok Ads Manager URL parameters. Keep TikTok click ID auto-append enabled so ttclid is preserved.')) ?></p>
+    <textarea class="admin__control-text" readonly onclick="this.select()"><?= $block->escapeHtml($recommendedParams) ?></textarea>
+    <ul>
+        <li><?= $block->escapeHtml(__('Campaign: campaign_id, campaign_name, utm_id, utm_campaign')) ?></li>
+        <li><?= $block->escapeHtml(__('Ad group: adgroup_id, adgroup_name, utm_term')) ?></li>
+        <li><?= $block->escapeHtml(__('Ad: ad_id, ad_name, utm_content')) ?></li>
+        <li><?= $block->escapeHtml(__('Creative: creative_id, creative_name')) ?></li>
+        <li><?= $block->escapeHtml(__('Placement: placement')) ?></li>
+        <li><?= $block->escapeHtml(__('Click IDs: ttclid, _ttp cookie')) ?></li>
+    </ul>
+    <p class="pynarae-muted">
+        <?= $block->escapeHtml(__('Manual server events use the official TikTok Magento connection. The Purchase event sends ttclid, _ttp, IP, user agent, order ID, value, currency, content IDs, and the matched landing page URL.')) ?>
+    </p>
+</div>
+
+<form class="pynarae-visit-toolbar" method="get" action="<?= $block->escapeUrl($block->getFormActionUrl()) ?>">
+    <div class="pynarae-visit-grid">
+        <div>
+            <label for="landing"><?= $block->escapeHtml(__('Landing page / URL')) ?></label>
+            <input class="admin__control-text" id="landing" name="landing" value="<?= $block->escapeHtmlAttr($filters['landing']) ?>" placeholder="evening-wind-down-guide or /lp/..." />
+        </div>
+        <div>
+            <label for="tz"><?= $block->escapeHtml(__('Display / filter timezone')) ?></label>
+            <select class="admin__control-select" id="tz" name="tz">
+                <?php foreach ($block->getTimezoneOptions() as $timezone => $label): ?>
+                    <option value="<?= $block->escapeHtmlAttr($timezone) ?>" <?= $filters['tz'] === $timezone ? 'selected' : '' ?>>
+                        <?= $block->escapeHtml($label) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div>
+            <label for="from"><?= $block->escapeHtml(__('From time')) ?></label>
+            <input class="admin__control-text" id="from" name="from" type="datetime-local" value="<?= $block->escapeHtmlAttr($filters['from']) ?>" />
+        </div>
+        <div>
+            <label for="to"><?= $block->escapeHtml(__('To time')) ?></label>
+            <input class="admin__control-text" id="to" name="to" type="datetime-local" value="<?= $block->escapeHtmlAttr($filters['to']) ?>" />
+        </div>
+        <div>
+            <label for="limit"><?= $block->escapeHtml(__('Rows')) ?></label>
+            <input class="admin__control-text" id="limit" name="limit" type="number" min="20" max="500" value="<?= (int)$block->getLimit() ?>" />
+        </div>
+        <div>
+            <label for="ttclid"><?= $block->escapeHtml(__('ttclid')) ?></label>
+            <input class="admin__control-text" id="ttclid" name="ttclid" value="<?= $block->escapeHtmlAttr($filters['ttclid']) ?>" />
+        </div>
+        <div>
+            <label for="campaign_id"><?= $block->escapeHtml(__('Campaign ID')) ?></label>
+            <input class="admin__control-text" id="campaign_id" name="campaign_id" value="<?= $block->escapeHtmlAttr($filters['campaign_id']) ?>" />
+        </div>
+        <div>
+            <label for="campaign_name"><?= $block->escapeHtml(__('Campaign Name')) ?></label>
+            <input class="admin__control-text" id="campaign_name" name="campaign_name" value="<?= $block->escapeHtmlAttr($filters['campaign_name']) ?>" />
+        </div>
+        <div>
+            <label for="adgroup_id"><?= $block->escapeHtml(__('Ad Group ID')) ?></label>
+            <input class="admin__control-text" id="adgroup_id" name="adgroup_id" value="<?= $block->escapeHtmlAttr($filters['adgroup_id']) ?>" />
+        </div>
+        <div>
+            <label for="adgroup_name"><?= $block->escapeHtml(__('Ad Group Name')) ?></label>
+            <input class="admin__control-text" id="adgroup_name" name="adgroup_name" value="<?= $block->escapeHtmlAttr($filters['adgroup_name']) ?>" />
+        </div>
+        <div>
+            <label for="ad_id"><?= $block->escapeHtml(__('Ad / Creative ID')) ?></label>
+            <input class="admin__control-text" id="ad_id" name="ad_id" value="<?= $block->escapeHtmlAttr($filters['ad_id']) ?>" />
+        </div>
+        <div>
+            <label for="ad_name"><?= $block->escapeHtml(__('Ad Name')) ?></label>
+            <input class="admin__control-text" id="ad_name" name="ad_name" value="<?= $block->escapeHtmlAttr($filters['ad_name']) ?>" />
+        </div>
+        <div>
+            <label for="creative_id"><?= $block->escapeHtml(__('Creative ID')) ?></label>
+            <input class="admin__control-text" id="creative_id" name="creative_id" value="<?= $block->escapeHtmlAttr($filters['creative_id']) ?>" />
+        </div>
+        <div>
+            <label for="creative_name"><?= $block->escapeHtml(__('Creative Name')) ?></label>
+            <input class="admin__control-text" id="creative_name" name="creative_name" value="<?= $block->escapeHtmlAttr($filters['creative_name']) ?>" />
+        </div>
+        <div>
+            <label for="ip"><?= $block->escapeHtml(__('IP')) ?></label>
+            <input class="admin__control-text" id="ip" name="ip" value="<?= $block->escapeHtmlAttr($filters['ip']) ?>" />
+        </div>
+        <div>
+            <label for="cf_ip"><?= $block->escapeHtml(__('Cloudflare IP')) ?></label>
+            <input class="admin__control-text" id="cf_ip" name="cf_ip" value="<?= $block->escapeHtmlAttr($filters['cf_ip']) ?>" />
+        </div>
+        <div>
+            <label for="country"><?= $block->escapeHtml(__('Country')) ?></label>
+            <input class="admin__control-text" id="country" name="country" value="<?= $block->escapeHtmlAttr($filters['country']) ?>" placeholder="US" />
+        </div>
+        <div>
+            <label for="region"><?= $block->escapeHtml(__('Region')) ?></label>
+            <input class="admin__control-text" id="region" name="region" value="<?= $block->escapeHtmlAttr($filters['region']) ?>" />
+        </div>
+        <div>
+            <label for="city"><?= $block->escapeHtml(__('City')) ?></label>
+            <input class="admin__control-text" id="city" name="city" value="<?= $block->escapeHtmlAttr($filters['city']) ?>" />
+        </div>
+        <div class="wide">
+            <label for="keyword"><?= $block->escapeHtml(__('Keyword')) ?></label>
+            <input class="admin__control-text" id="keyword" name="keyword" value="<?= $block->escapeHtmlAttr($filters['keyword']) ?>" placeholder="full URL, args, UTM campaign, placement, creative, referrer..." />
+        </div>
+    </div>
+    <div class="pynarae-visit-actions">
+        <button class="action-primary" type="submit"><span><?= $block->escapeHtml(__('Search Visits')) ?></span></button>
+        <a class="action-default" href="<?= $block->escapeUrl($block->getResetUrl()) ?>"><span><?= $block->escapeHtml(__('Reset')) ?></span></a>
+    </div>
+</form>
+
+<div class="pynarae-summary">
+    <span class="pynarae-pill"><?= $block->escapeHtml(__('Showing %1 visit(s)', count($visits))) ?></span>
+    <span class="pynarae-pill"><?= $block->escapeHtml(__('Displayed timezone: %1', $block->getSelectedTimezone())) ?></span>
+    <span class="pynarae-pill"><?= $block->escapeHtml(__('Server event: Purchase by default')) ?></span>
+</div>
+
+<div class="pynarae-table-wrap">
+    <table class="pynarae-table">
+        <thead>
+        <tr>
+            <th><?= $block->escapeHtml(__('Visit Time')) ?></th>
+            <th><?= $block->escapeHtml(__('Request')) ?></th>
+            <th><?= $block->escapeHtml(__('Visitor / Geo')) ?></th>
+            <th><?= $block->escapeHtml(__('Ad IDs')) ?></th>
+            <th><?= $block->escapeHtml(__('UTM / Placement')) ?></th>
+            <th><?= $block->escapeHtml(__('ttclid / Click IDs')) ?></th>
+            <th><?= $block->escapeHtml(__('Referrer / UA')) ?></th>
+            <th><?= $block->escapeHtml(__('Server Event')) ?></th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php if (!$visits): ?>
+            <tr><td colspan="8"><?= $block->escapeHtml(__('No visit records found for the selected filters.')) ?></td></tr>
+        <?php else: ?>
+            <?php foreach ($visits as $visit): ?>
+                <?php $conversion = $conversions[(int)$visit->getId()] ?? null; ?>
+                <tr>
+                    <td>
+                        <strong><?= $block->escapeHtml($block->formatDateTimeInSelectedTimezone((string)$visit->getData('captured_at'))) ?></strong>
+                        <div class="pynarae-muted">UTC <?= $block->escapeHtml($block->formatDateTime((string)$visit->getData('captured_at'))) ?></div>
+                        <div class="pynarae-muted">#<?= (int)$visit->getId() ?></div>
+                        <div class="pynarae-muted">Status <?= (int)$visit->getData('response_status') ?> · <?= $block->escapeHtml($block->formatRequestTime($visit->getData('request_time'))) ?></div>
+                    </td>
+                    <td>
+                        <div><strong><?= $block->escapeHtml((string)$visit->getData('landing_identifier')) ?></strong></div>
+                        <div class="pynarae-code"><a href="<?= $block->escapeUrl((string)$visit->getData('landing_url')) ?>" target="_blank" rel="noopener noreferrer"><?= $block->escapeHtml($block->short((string)$visit->getData('landing_url'), 120)) ?></a></div>
+                        <div class="pynarae-param"><b>host</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('host'))) ?></span></div>
+                        <div class="pynarae-param"><b>method</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('method'))) ?></span></div>
+                        <div class="pynarae-param"><b>uri</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)($visit->getData('uri') ?: $visit->getData('request_path')))) ?></span></div>
+                        <div class="pynarae-muted"><?= $block->escapeHtml((string)$visit->getData('content_name')) ?></div>
+                        <details class="pynarae-raw">
+                            <summary><?= $block->escapeHtml(__('Full args')) ?></summary>
+                            <div class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('query_string'))) ?></div>
+                        </details>
+                    </td>
+                    <td>
+                        <div class="pynarae-param"><b>ip</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('ip'))) ?></span></div>
+                        <div class="pynarae-param"><b>cf_ip</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('cf_ip'))) ?></span></div>
+                        <div class="pynarae-param"><b>country</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('country'))) ?></span></div>
+                        <div class="pynarae-param"><b>region</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('region'))) ?></span></div>
+                        <div class="pynarae-param"><b>city</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('city'))) ?></span></div>
+                        <div class="pynarae-param"><b>cf_ray</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('cf_ray'))) ?></span></div>
+                        <div class="pynarae-muted"><?= $block->escapeHtml((string)$visit->getData('device') ?: '-') ?> / <?= $block->escapeHtml((string)$visit->getData('browser') ?: '-') ?></div>
+                    </td>
+                    <td>
+                        <div class="pynarae-param"><b>campaign</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('campaign_id'))) ?></span></div>
+                        <div class="pynarae-param"><b>camp name</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('campaign_name'))) ?></span></div>
+                        <div class="pynarae-param"><b>adgroup</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('adgroup_id'))) ?></span></div>
+                        <div class="pynarae-param"><b>group name</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('adgroup_name'))) ?></span></div>
+                        <div class="pynarae-param"><b>ad</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('ad_id'))) ?></span></div>
+                        <div class="pynarae-param"><b>ad name</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('ad_name'))) ?></span></div>
+                        <div class="pynarae-param"><b>creative</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('creative_id'))) ?></span></div>
+                        <div class="pynarae-param"><b>creative name</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('creative_name'))) ?></span></div>
+                    </td>
+                    <td>
+                        <div class="pynarae-param"><b>placement</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('placement'))) ?></span></div>
+                        <div class="pynarae-param"><b>source</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('utm_source'))) ?></span></div>
+                        <div class="pynarae-param"><b>medium</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('utm_medium'))) ?></span></div>
+                        <div class="pynarae-param"><b>campaign</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('utm_campaign'))) ?></span></div>
+                        <div class="pynarae-param"><b>content</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('utm_content'))) ?></span></div>
+                        <div class="pynarae-param"><b>term</b><span><?= $block->escapeHtml($block->display((string)$visit->getData('utm_term'))) ?></span></div>
+                        <div class="pynarae-param"><b>utm_id</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('utm_id'))) ?></span></div>
+                    </td>
+                    <td>
+                        <div><strong>ttclid</strong></div>
+                        <div class="pynarae-code"><?= $block->escapeHtml($block->short((string)$visit->getData('ttclid'), 180) ?: '-') ?></div>
+                        <div class="pynarae-param"><b>ttp</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('ttp'))) ?></span></div>
+                        <div class="pynarae-param"><b>gclid</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('gclid'))) ?></span></div>
+                        <div class="pynarae-param"><b>fbclid</b><span class="pynarae-code"><?= $block->escapeHtml($block->display((string)$visit->getData('fbclid'))) ?></span></div>
+                    </td>
+                    <td>
+                        <div class="pynarae-code"><?= $block->escapeHtml($block->short((string)$visit->getData('referrer'), 120) ?: '-') ?></div>
+                        <div class="pynarae-muted"><?= $block->escapeHtml($block->short((string)$visit->getData('user_agent'), 140)) ?></div>
+                    </td>
+                    <td>
+                        <div>
+                            <span class="pynarae-status <?= $block->escapeHtmlAttr($block->statusClass($conversion)) ?>">
+                                <?= $block->escapeHtml($conversion && $conversion->getId() ? (string)$conversion->getData('status') : __('No event')) ?>
+                            </span>
+                        </div>
+                        <?php if ($conversion && $conversion->getId()): ?>
+                            <div class="pynarae-muted">
+                                <?= $block->escapeHtml((string)$conversion->getData('event_name')) ?> ·
+                                <?= $block->escapeHtml((string)$conversion->getData('order_number')) ?>
+                                <?= $block->escapeHtml($block->money($conversion->getData('order_value'), (string)$conversion->getData('currency'))) ?>
+                            </div>
+                            <div class="pynarae-muted">
+                                <?= $block->escapeHtml(__('Event time: %1', $block->formatUnixTime($conversion->getData('event_time'), (string)$conversion->getData('event_timezone')))) ?>
+                            </div>
+                            <div class="pynarae-code"><?= $block->escapeHtml($block->short((string)$conversion->getData('event_id'), 72)) ?></div>
+                            <?php if ((string)$conversion->getData('message') !== ''): ?>
+                                <div class="pynarae-muted"><?= $block->escapeHtml($block->short((string)$conversion->getData('message'), 96)) ?></div>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                        <details class="pynarae-report">
+                            <summary><?= $block->escapeHtml(__('Report order event')) ?></summary>
+                            <form class="pynarae-report-form" method="post" action="<?= $block->escapeUrl($block->getReportUrl()) ?>">
+                                <input type="hidden" name="form_key" value="<?= $block->escapeHtmlAttr($block->getFormKey()) ?>" />
+                                <input type="hidden" name="visit_id" value="<?= (int)$visit->getId() ?>" />
+                                <select class="admin__control-select full" name="event_name">
+                                    <?php foreach ($block->getEventNameOptions() as $eventName => $eventLabel): ?>
+                                        <option value="<?= $block->escapeHtmlAttr($eventName) ?>"><?= $block->escapeHtml($eventLabel) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <input class="admin__control-text full" name="order_number" required placeholder="<?= $block->escapeHtmlAttr(__('TikTok Shop order number')) ?>" />
+                                <input class="admin__control-text" name="order_value" type="number" min="0" step="0.01" placeholder="<?= $block->escapeHtmlAttr(__('Amount')) ?>" />
+                                <input class="admin__control-text" name="currency" maxlength="3" value="USD" />
+                                <select class="admin__control-select" name="event_timezone">
+                                    <?php foreach ($block->getTimezoneOptions() as $timezone => $label): ?>
+                                        <option value="<?= $block->escapeHtmlAttr($timezone) ?>" <?= $block->getSelectedTimezone() === $timezone ? 'selected' : '' ?>>
+                                            <?= $block->escapeHtml($label) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <input class="admin__control-text full" name="event_time" type="datetime-local" value="<?= $block->escapeHtmlAttr($block->getDefaultEventTime()) ?>" />
+                                <div class="pynarae-muted full"><?= $block->escapeHtml(__('Enter the TikTok Shop order time in the selected timezone. It will be converted to a UTC Unix timestamp before sending.')) ?></div>
+                                <button class="action-secondary full" type="submit"><span><?= $block->escapeHtml(__('Send Server Purchase Event')) ?></span></button>
+                            </form>
+                        </details>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php endif; ?>
+        </tbody>
+    </table>
+</div>

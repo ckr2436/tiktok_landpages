@@ -6,6 +6,7 @@
             <resource id="Magento_Backend::admin">
                 <resource id="Pynarae_TiktokLandingPages::root" title="TikTok Landing Pages" sortOrder="92">
                     <resource id="Pynarae_TiktokLandingPages::pages" title="Manage Pages" sortOrder="10"/>
+                    <resource id="Pynarae_TiktokLandingPages::visits" title="Visit Records and Events" sortOrder="20"/>
                 </resource>
             </resource>
         </resources>

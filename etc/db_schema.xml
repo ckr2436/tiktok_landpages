@@ -52,4 +52,136 @@
             <column name="is_active"/>
         </index>
     </table>
+    <table name="pynarae_tiktok_landing_visit" resource="default" engine="innodb" comment="Pynarae TikTok Landing Page Visits">
+        <column xsi:type="bigint" name="visit_id" nullable="false" identity="true" unsigned="true" comment="Visit ID"/>
+        <column xsi:type="int" name="page_id" nullable="true" unsigned="true" comment="Landing Page ID"/>
+        <column xsi:type="smallint" name="website_id" nullable="false" unsigned="true" default="1" comment="Website ID"/>
+        <column xsi:type="varchar" name="landing_identifier" nullable="false" length="128" comment="Landing Identifier"/>
+        <column xsi:type="text" name="landing_url" nullable="true" comment="Landing URL"/>
+        <column xsi:type="text" name="request_uri" nullable="true" comment="Request URI"/>
+        <column xsi:type="varchar" name="request_path" nullable="true" length="255" comment="Request Path"/>
+        <column xsi:type="text" name="query_string" nullable="true" comment="Query String"/>
+        <column xsi:type="varchar" name="request_id" nullable="true" length="128" comment="Request ID"/>
+        <column xsi:type="varchar" name="source_hash" nullable="true" length="64" comment="Source Hash"/>
+        <column xsi:type="varchar" name="ip" nullable="true" length="64" comment="Client IP"/>
+        <column xsi:type="varchar" name="cf_ip" nullable="true" length="64" comment="Cloudflare Edge IP"/>
+        <column xsi:type="varchar" name="cf_ray" nullable="true" length="128" comment="Cloudflare Ray ID"/>
+        <column xsi:type="varchar" name="country" nullable="true" length="64" comment="Country"/>
+        <column xsi:type="varchar" name="region" nullable="true" length="128" comment="Region"/>
+        <column xsi:type="varchar" name="city" nullable="true" length="128" comment="City"/>
+        <column xsi:type="varchar" name="host" nullable="true" length="255" comment="Host"/>
+        <column xsi:type="varchar" name="method" nullable="true" length="16" comment="Request Method"/>
+        <column xsi:type="varchar" name="uri" nullable="true" length="255" comment="Normalized URI"/>
+        <column xsi:type="text" name="user_agent" nullable="true" comment="User Agent"/>
+        <column xsi:type="varchar" name="device" nullable="true" length="32" comment="Device"/>
+        <column xsi:type="varchar" name="browser" nullable="true" length="64" comment="Browser"/>
+        <column xsi:type="text" name="referrer" nullable="true" comment="Referrer"/>
+        <column xsi:type="varchar" name="ttclid" nullable="true" length="768" comment="TikTok Click ID"/>
+        <column xsi:type="varchar" name="ttp" nullable="true" length="255" comment="TikTok TTP Cookie"/>
+        <column xsi:type="varchar" name="campaign_id" nullable="true" length="255" comment="Campaign ID"/>
+        <column xsi:type="varchar" name="campaign_name" nullable="true" length="255" comment="Campaign Name"/>
+        <column xsi:type="varchar" name="adgroup_id" nullable="true" length="255" comment="Adgroup ID"/>
+        <column xsi:type="varchar" name="adgroup_name" nullable="true" length="255" comment="Adgroup Name"/>
+        <column xsi:type="varchar" name="ad_id" nullable="true" length="255" comment="Ad ID"/>
+        <column xsi:type="varchar" name="ad_name" nullable="true" length="255" comment="Ad Name"/>
+        <column xsi:type="varchar" name="creative_id" nullable="true" length="255" comment="Creative ID"/>
+        <column xsi:type="varchar" name="creative_name" nullable="true" length="255" comment="Creative Name"/>
+        <column xsi:type="varchar" name="placement" nullable="true" length="255" comment="Placement"/>
+        <column xsi:type="varchar" name="utm_source" nullable="true" length="255" comment="UTM Source"/>
+        <column xsi:type="varchar" name="utm_medium" nullable="true" length="255" comment="UTM Medium"/>
+        <column xsi:type="varchar" name="utm_campaign" nullable="true" length="255" comment="UTM Campaign"/>
+        <column xsi:type="varchar" name="utm_content" nullable="true" length="255" comment="UTM Content"/>
+        <column xsi:type="varchar" name="utm_term" nullable="true" length="255" comment="UTM Term"/>
+        <column xsi:type="varchar" name="utm_id" nullable="true" length="255" comment="UTM ID"/>
+        <column xsi:type="varchar" name="gclid" nullable="true" length="255" comment="Google Click ID"/>
+        <column xsi:type="varchar" name="fbclid" nullable="true" length="255" comment="Facebook Click ID"/>
+        <column xsi:type="varchar" name="product_id" nullable="true" length="64" comment="TikTok Product ID"/>
+        <column xsi:type="varchar" name="content_name" nullable="true" length="255" comment="Content Name"/>
+        <column xsi:type="smallint" name="response_status" nullable="false" unsigned="true" default="200" comment="Response Status"/>
+        <column xsi:type="decimal" name="request_time" nullable="true" scale="3" precision="10" comment="Request Time"/>
+        <column xsi:type="text" name="extra_json" nullable="true" comment="Extra JSON"/>
+        <column xsi:type="timestamp" name="captured_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" comment="Captured At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="visit_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="PYNARAE_TKLP_VISIT_PAGE_ID_PAGE_ENTITY_ID"
+                    table="pynarae_tiktok_landing_visit" column="page_id"
+                    referenceTable="pynarae_tiktok_landing_page" referenceColumn="entity_id" onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="PYNARAE_TKLP_VISIT_WEBSITE_ID_STORE_WEBSITE_WEBSITE_ID"
+                    table="pynarae_tiktok_landing_visit" column="website_id"
+                    referenceTable="store_website" referenceColumn="website_id" onDelete="CASCADE"/>
+        <index referenceId="PYNARAE_TKLP_VISIT_CAPTURED_AT_IDX" indexType="btree">
+            <column name="captured_at"/>
+        </index>
+        <index referenceId="PYNARAE_TKLP_VISIT_IDENTIFIER_TIME_IDX" indexType="btree">
+            <column name="landing_identifier"/>
+            <column name="captured_at"/>
+        </index>
+        <index referenceId="PYNARAE_TKLP_VISIT_TTCLID_IDX" indexType="btree">
+            <column name="ttclid"/>
+        </index>
+        <index referenceId="PYNARAE_TKLP_VISIT_CAMPAIGN_IDX" indexType="btree">
+            <column name="campaign_id"/>
+        </index>
+        <index referenceId="PYNARAE_TKLP_VISIT_ADGROUP_IDX" indexType="btree">
+            <column name="adgroup_id"/>
+        </index>
+        <index referenceId="PYNARAE_TKLP_VISIT_AD_IDX" indexType="btree">
+            <column name="ad_id"/>
+        </index>
+        <index referenceId="PYNARAE_TKLP_VISIT_IP_TIME_IDX" indexType="btree">
+            <column name="ip"/>
+            <column name="captured_at"/>
+        </index>
+        <index referenceId="PYNARAE_TKLP_VISIT_COUNTRY_TIME_IDX" indexType="btree">
+            <column name="country"/>
+            <column name="captured_at"/>
+        </index>
+        <index referenceId="PYNARAE_TKLP_VISIT_SOURCE_HASH_IDX" indexType="btree">
+            <column name="source_hash"/>
+        </index>
+    </table>
+    <table name="pynarae_tiktok_landing_conversion" resource="default" engine="innodb" comment="Pynarae TikTok Landing Page Conversions">
+        <column xsi:type="bigint" name="conversion_id" nullable="false" identity="true" unsigned="true" comment="Conversion ID"/>
+        <column xsi:type="bigint" name="visit_id" nullable="true" unsigned="true" comment="Visit ID"/>
+        <column xsi:type="smallint" name="website_id" nullable="false" unsigned="true" default="1" comment="Website ID"/>
+        <column xsi:type="varchar" name="event_name" nullable="false" length="64" default="CompletePayment" comment="Event Name"/>
+        <column xsi:type="varchar" name="event_id" nullable="false" length="128" comment="Event ID"/>
+        <column xsi:type="int" name="event_time" nullable="false" unsigned="true" comment="Event Time"/>
+        <column xsi:type="varchar" name="event_timezone" nullable="true" length="64" comment="Event Timezone"/>
+        <column xsi:type="varchar" name="event_time_local" nullable="true" length="32" comment="Event Local Time"/>
+        <column xsi:type="varchar" name="order_number" nullable="false" length="64" comment="Order Number"/>
+        <column xsi:type="decimal" name="order_value" nullable="true" scale="4" precision="12" comment="Order Value"/>
+        <column xsi:type="varchar" name="currency" nullable="false" length="3" default="USD" comment="Currency"/>
+        <column xsi:type="varchar" name="status" nullable="false" length="32" default="pending" comment="Status"/>
+        <column xsi:type="text" name="message" nullable="true" comment="Message"/>
+        <column xsi:type="text" name="payload_json" nullable="true" comment="Payload JSON"/>
+        <column xsi:type="text" name="response_json" nullable="true" comment="Response JSON"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="true" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="conversion_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="PYNARAE_TKLP_CONVERSION_VISIT_ID_VISIT_ID"
+                    table="pynarae_tiktok_landing_conversion" column="visit_id"
+                    referenceTable="pynarae_tiktok_landing_visit" referenceColumn="visit_id" onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="PYNARAE_TKLP_CONVERSION_WEBSITE_ID_STORE_WEBSITE_WEBSITE_ID"
+                    table="pynarae_tiktok_landing_conversion" column="website_id"
+                    referenceTable="store_website" referenceColumn="website_id" onDelete="CASCADE"/>
+        <constraint xsi:type="unique" referenceId="PYNARAE_TKLP_CONVERSION_EVENT_ID_UNIQUE">
+            <column name="event_id"/>
+        </constraint>
+        <index referenceId="PYNARAE_TKLP_CONVERSION_VISIT_IDX" indexType="btree">
+            <column name="visit_id"/>
+        </index>
+        <index referenceId="PYNARAE_TKLP_CONVERSION_ORDER_IDX" indexType="btree">
+            <column name="order_number"/>
+        </index>
+        <index referenceId="PYNARAE_TKLP_CONVERSION_STATUS_IDX" indexType="btree">
+            <column name="status"/>
+        </index>
+        <index referenceId="PYNARAE_TKLP_CONVERSION_CREATED_IDX" indexType="btree">
+            <column name="created_at"/>
+        </index>
+    </table>
 </schema>

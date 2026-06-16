@@ -21,5 +21,12 @@
              parent="Pynarae_TiktokLandingPages::root"
              action="pynarae_tiktoklandingpages/page/new"
              resource="Pynarae_TiktokLandingPages::pages"/>
+        <add id="Pynarae_TiktokLandingPages::visits"
+             title="Visit Records"
+             module="Pynarae_TiktokLandingPages"
+             sortOrder="30"
+             parent="Pynarae_TiktokLandingPages::root"
+             action="pynarae_tiktoklandingpages/visit/index"
+             resource="Pynarae_TiktokLandingPages::visits"/>
     </menu>
 </config>

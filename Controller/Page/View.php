@@ -10,6 +10,7 @@ use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Pynarae\TiktokLandingPages\Api\LandingPageRepositoryInterface;
 use Pynarae\TiktokLandingPages\Model\Frontend\HtmlRenderer;
+use Pynarae\TiktokLandingPages\Model\VisitRecorder;
 
 class View extends Action
 {
@@ -19,7 +20,8 @@ class View extends Action
         private readonly StoreManagerInterface $storeManager,
         private readonly RawFactory $rawFactory,
         private readonly ForwardFactory $forwardFactory,
-        private readonly HtmlRenderer $htmlRenderer
+        private readonly HtmlRenderer $htmlRenderer,
+        private readonly VisitRecorder $visitRecorder
     ) {
         parent::__construct($context);
     }
@@ -35,8 +37,14 @@ class View extends Action
             return $this->forwardFactory->create()->forward('noroute');
         }
 
+        $this->visitRecorder->record($page, $this->getRequest());
+
         $result = $this->rawFactory->create();
         $result->setHeader('Content-Type', 'text/html; charset=UTF-8', true);
+        $result->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0', true);
+        $result->setHeader('Pragma', 'no-cache', true);
+        $result->setHeader('Expires', '0', true);
+        $result->setHeader('X-Robots-Tag', 'noindex, nofollow', true);
         $result->setContents($this->htmlRenderer->render($page, $this->getRequest()));
         return $result;
     }

@@ -43,5 +43,106 @@
       "PYNARAE_TKLP_WEBSITE_IDENTIFIER_UNIQUE": true,
       "PYNARAE_TKLP_WEBSITE_ID_STORE_WEBSITE_WEBSITE_ID": true
     }
+  },
+  "pynarae_tiktok_landing_visit": {
+    "column": {
+      "visit_id": true,
+      "page_id": true,
+      "website_id": true,
+      "landing_identifier": true,
+      "landing_url": true,
+      "request_uri": true,
+      "request_path": true,
+      "query_string": true,
+      "request_id": true,
+      "source_hash": true,
+      "ip": true,
+      "cf_ip": true,
+      "cf_ray": true,
+      "country": true,
+      "region": true,
+      "city": true,
+      "host": true,
+      "method": true,
+      "uri": true,
+      "user_agent": true,
+      "device": true,
+      "browser": true,
+      "referrer": true,
+      "ttclid": true,
+      "ttp": true,
+      "campaign_id": true,
+      "campaign_name": true,
+      "adgroup_id": true,
+      "adgroup_name": true,
+      "ad_id": true,
+      "ad_name": true,
+      "creative_id": true,
+      "creative_name": true,
+      "placement": true,
+      "utm_source": true,
+      "utm_medium": true,
+      "utm_campaign": true,
+      "utm_content": true,
+      "utm_term": true,
+      "utm_id": true,
+      "gclid": true,
+      "fbclid": true,
+      "product_id": true,
+      "content_name": true,
+      "response_status": true,
+      "request_time": true,
+      "extra_json": true,
+      "captured_at": true
+    },
+    "index": {
+      "PYNARAE_TKLP_VISIT_CAPTURED_AT_IDX": true,
+      "PYNARAE_TKLP_VISIT_IDENTIFIER_TIME_IDX": true,
+      "PYNARAE_TKLP_VISIT_TTCLID_IDX": true,
+      "PYNARAE_TKLP_VISIT_CAMPAIGN_IDX": true,
+      "PYNARAE_TKLP_VISIT_ADGROUP_IDX": true,
+      "PYNARAE_TKLP_VISIT_AD_IDX": true,
+      "PYNARAE_TKLP_VISIT_IP_TIME_IDX": true,
+      "PYNARAE_TKLP_VISIT_COUNTRY_TIME_IDX": true,
+      "PYNARAE_TKLP_VISIT_SOURCE_HASH_IDX": true
+    },
+    "constraint": {
+      "PRIMARY": true,
+      "PYNARAE_TKLP_VISIT_PAGE_ID_PAGE_ENTITY_ID": true,
+      "PYNARAE_TKLP_VISIT_WEBSITE_ID_STORE_WEBSITE_WEBSITE_ID": true
+    }
+  },
+  "pynarae_tiktok_landing_conversion": {
+    "column": {
+      "conversion_id": true,
+      "visit_id": true,
+      "website_id": true,
+      "event_name": true,
+      "event_id": true,
+      "event_time": true,
+      "event_timezone": true,
+      "event_time_local": true,
+      "order_number": true,
+      "order_value": true,
+      "currency": true,
+      "status": true,
+      "message": true,
+      "payload_json": true,
+      "response_json": true,
+      "created_at": true,
+      "updated_at": true
+    },
+    "index": {
+      "PYNARAE_TKLP_CONVERSION_VISIT_IDX": true,
+      "PYNARAE_TKLP_CONVERSION_ORDER_IDX": true,
+      "PYNARAE_TKLP_CONVERSION_STATUS_IDX": true,
+      "PYNARAE_TKLP_CONVERSION_CREATED_IDX": true
+    },
+    "constraint": {
+      "PRIMARY": true,
+      "PYNARAE_TKLP_CONVERSION_VISIT_ID_VISIT_ID": true,
+      "PYNARAE_TKLP_CONVERSION_WEBSITE_ID_STORE_WEBSITE_WEBSITE_ID": true,
+      "PYNARAE_TKLP_CONVERSION_EVENT_ID_UNIQUE": true
+    }
   }
 }
